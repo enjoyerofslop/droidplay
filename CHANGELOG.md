@@ -4,6 +4,8 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 
 ## Unreleased
 
+## 0.1.0 — 2026-11-08
+
 ### Added
 
 - **Install on Android:** the Game menu builds a game with [droidnative](https://github.com/enjoyerofslop/droidnative), nxnative with an Android port. It installs the game with adb on an Android device with USB debugging on, such as an Ayn Odin 2, then starts it there. The build has a folder of its own, `<game folder>/android`, with links to the game files, so it never touches the Mac build, kept or not. One app on the device carries every game built on this Mac, and its saves stay through updates. **Play on Android** starts a game the device already has. Settings › Devices › Android sets the droidnative checkout, which can be your own branch, and shows the devices adb sees. From the Terminal: `nxplay --android <serial> <game folder>`. Remove Game deletes the Android folder too.
