@@ -1,6 +1,6 @@
 import Foundation
 
-/// A play asking which save to use: the game's Mac app has a save of its own that differs from NX Play's. The other
+/// A play asking which save to use: the game's Mac app has a save of its own that differs from DroidPlay's. The other
 /// save stays as it is. Console Mode answers it with the controller, so the highlighted row lives here.
 public struct SaveQuestion: Identifiable, Sendable {
     public enum Row: CaseIterable, Sendable {
@@ -14,7 +14,7 @@ public struct SaveQuestion: Identifiable, Sendable {
     public var id: Game.ID { game.id }
 }
 
-/// Play with the Mac app's own save, or NX Play's (issue #8): asked while the two differ, unless the player said not
+/// Play with the Mac app's own save, or DroidPlay's (issue #8): asked while the two differ, unless the player said not
 /// to ask again for the game.
 extension Library {
     public func play(_ game: Game) {

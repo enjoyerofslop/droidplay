@@ -28,7 +28,7 @@ struct RootView: View {
             }
         }
         .alert(
-            "NX Play", isPresented: Binding(get: { launcher.problem != nil }, set: { if !$0 { launcher.problem = nil } })
+            "DroidPlay", isPresented: Binding(get: { launcher.problem != nil }, set: { if !$0 { launcher.problem = nil } })
         ) {
             Button("OK") { launcher.problem = nil }
         } message: {

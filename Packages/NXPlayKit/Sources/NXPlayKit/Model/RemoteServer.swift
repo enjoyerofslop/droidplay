@@ -2,7 +2,7 @@ import Foundation
 import Network
 import SystemConfiguration
 
-/// How the iOS app reaches NX Play: a small HTTP server on the local network, advertised over Bonjour as
+/// How the iOS app reaches DroidPlay: a small HTTP server on the local network, advertised over Bonjour as
 /// `_nxplay._tcp`, so the app finds the Mac without being given an address. Everything runs on the main queue,
 /// where the library lives. Each connection carries one request and closes after the response.
 @MainActor final class RemoteServer {

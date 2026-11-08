@@ -75,7 +75,7 @@ actor ArtworkStore {
     /// Caches: everything here can be downloaded again.
     static var defaultDirectory: URL {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appending(path: "com.varyform.nxplay/Banners", directoryHint: .isDirectory)
+            .appending(path: "io.github.enjoyerofslop.droidplay/Banners", directoryHint: .isDirectory)
     }
 
     nonisolated var iconDirectory: URL {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build NX Play.app (Release) into build/Build/Products/Release.
+# Build DroidPlay.app (Release) into build/Build/Products/Release.
 # xcodegen comes from mise when it is installed (the version pinned in mise.toml), else from Homebrew (Brewfile).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -12,8 +12,8 @@ else
 fi
 # the app is assembled afresh each time, from the compiled code Xcode keeps: files a build step copied in and a later
 # version no longer makes (a renamed folder of resources) would otherwise stay in it, and bin/install would ship them
-rm -rf "build/Build/Products/Release/NX Play.app"
+rm -rf "build/Build/Products/Release/DroidPlay.app"
 xcodebuild -project NXPlay.xcodeproj -scheme NXPlay -configuration Release \
   -destination 'generic/platform=macOS' -derivedDataPath build -quiet build "$@"
 
-echo "built: $PWD/build/Build/Products/Release/NX Play.app"
+echo "built: $PWD/build/Build/Products/Release/DroidPlay.app"

@@ -3,7 +3,7 @@ import Testing
 
 @testable import NXPlayKit
 
-/// Play's choice between NX Play's save and the Mac app's own (issue #8).
+/// Play's choice between DroidPlay's save and the Mac app's own (issue #8).
 @MainActor @Suite final class AppSaveTests {
     let base: URL
     let home: URL

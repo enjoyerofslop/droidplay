@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Build NX Play.app and install it into /Applications (or the folder given).
-# A running NX Play is asked to quit once nothing is running in it (no game, build or file work), then the new
+# Build DroidPlay.app and install it into /Applications (or the folder given).
+# A running DroidPlay is asked to quit once nothing is running in it (no game, build or file work), then the new
 # build replaces it and opens again; while it is busy, this waits.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 dest="${1:-/Applications}"
-app="NX Play.app"
+app="DroidPlay.app"
 
-# NX Play listens for these (Library.quitWhenIdleNotification, stayOpenNotification)
+# DroidPlay listens for these (Library.quitWhenIdleNotification, stayOpenNotification)
 post() {
-  osascript -l JavaScript -e "ObjC.import('Foundation'); \$.NSDistributedNotificationCenter.defaultCenter.postNotificationNameObjectUserInfoDeliverImmediately('com.varyform.nxplay.$1', \$.nil, \$.nil, true)" > /dev/null
+  osascript -l JavaScript -e "ObjC.import('Foundation'); \$.NSDistributedNotificationCenter.defaultCenter.postNotificationNameObjectUserInfoDeliverImmediately('io.github.enjoyerofslop.droidplay.$1', \$.nil, \$.nil, true)" > /dev/null
 }
-running() { pgrep -xq "NX Play"; }
+running() { pgrep -xq "DroidPlay"; }
 
 bin/build
 
@@ -20,12 +20,12 @@ reopen=0
 if running; then
   reopen=1
   post quitWhenIdle
-  trap 'post stayOpen; echo; echo "not installed: NX Play stays open"; exit 130' INT TERM
+  trap 'post stayOpen; echo; echo "not installed: DroidPlay stays open"; exit 130' INT TERM
   waited=0
   while running; do
     if (( waited == 3 )); then
-      echo "NX Play is busy (a game, a build or file work is running): it quits when that ends, then the new build replaces it."
-      echo "  (NX Play 1.6 and older can't quit by themselves: quit it by hand. Ctrl-C cancels the install.)"
+      echo "DroidPlay is busy (a game, a build or file work is running): it quits when that ends, then the new build replaces it."
+      echo "  (DroidPlay 1.6 and older can't quit by themselves: quit it by hand. Ctrl-C cancels the install.)"
     fi
     sleep 1
     waited=$(( waited + 1 ))
@@ -39,5 +39,5 @@ echo "installed: $dest/$app"
 
 if (( reopen )); then
   open "$dest/$app"
-  echo "reopened NX Play"
+  echo "reopened DroidPlay"
 fi

@@ -1,24 +1,24 @@
 import Foundation
 
-/// Which save Play uses when a game's Mac app keeps one of its own: NX Play's (the build's `run/save`), the app's, or
+/// Which save Play uses when a game's Mac app keeps one of its own: DroidPlay's (the build's `run/save`), the app's, or
 /// whichever was saved last.
 public enum SaveChoice: String, CaseIterable, Sendable {
     case nxplay, app, newer
 }
 
-/// A Mac app's own save, in `~/Library/Application Support/nxnative/<title ID>/save`, beside NX Play's. An app opened
-/// from Finder before NX Play pointed it at the game's save (nxplay's share_save) keeps playing on from its own, so the
-/// two can hold different progress, and Play, which starts the app with NX Play's save, looked like it lost one.
+/// A Mac app's own save, in `~/Library/Application Support/nxnative/<title ID>/save`, beside DroidPlay's. An app opened
+/// from Finder before DroidPlay pointed it at the game's save (nxplay's share_save) keeps playing on from its own, so the
+/// two can hold different progress, and Play, which starts the app with DroidPlay's save, looked like it lost one.
 public struct AppSave: Sendable {
     /// The app's own save (nxplay's NXPLAY_SAVE=app plays on from it).
     public let folder: URL
-    /// NX Play's on one side (`mac`), the app's on the other (`device`).
+    /// DroidPlay's on one side (`mac`), the app's on the other (`device`).
     public let comparison: SaveComparison
 
-    /// The line nxplay's share_save writes into the app's env.txt when it points the app at NX Play's save.
-    static let mark = "# nxplay: the save NX Play plays this game with"
+    /// The line nxplay's share_save writes into the app's env.txt when it points the app at DroidPlay's save.
+    static let mark = "# nxplay: the save DroidPlay plays this game with"
 
-    /// Nil when there's nothing to choose: no Mac app or build, the app plays on from NX Play's save (or a folder the
+    /// Nil when there's nothing to choose: no Mac app or build, the app plays on from DroidPlay's save (or a folder the
     /// player set in its env.txt), or it hasn't saved yet.
     public init?(game: Game, home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         guard game.macAppURL != nil, let id = game.titleID?.uppercased(),

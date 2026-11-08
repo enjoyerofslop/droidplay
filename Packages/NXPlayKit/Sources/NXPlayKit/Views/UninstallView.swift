@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// NX Play › Uninstall NX Play…: what goes, with its size, what stays, and one button.
+/// DroidPlay › Uninstall DroidPlay…: what goes, with its size, what stays, and one button.
 public struct UninstallView: View {
     public static let windowID = "uninstall"
 
@@ -12,8 +12,8 @@ public struct UninstallView: View {
     public var body: some View {
         @Bindable var uninstaller = uninstaller
         VStack(alignment: .leading, spacing: 14) {
-            Text("Uninstall NX Play").font(.title2.bold())
-            Text("Removes everything NX Play put on this Mac, then quits.")
+            Text("Uninstall DroidPlay").font(.title2.bold())
+            Text("Removes everything DroidPlay put on this Mac, then quits.")
                 .foregroundStyle(.secondary)
 
             GroupBox("Removed") {
@@ -144,13 +144,13 @@ public struct UninstallView: View {
     }
 }
 
-/// The app menu's Uninstall NX Play….
+/// The app menu's Uninstall DroidPlay….
 public struct UninstallMenuItem: View {
     @Environment(\.openWindow) private var openWindow
 
     public init() {}
 
     public var body: some View {
-        Button("Uninstall NX Play…") { openWindow(id: UninstallView.windowID) }
+        Button("Uninstall DroidPlay…") { openWindow(id: UninstallView.windowID) }
     }
 }

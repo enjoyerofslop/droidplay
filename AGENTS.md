@@ -1,12 +1,13 @@
-# Contributing to NX Play
+# Contributing to DroidPlay
 
 These conventions are for anyone changing this repo, and for the coding agents (Claude Code, Codex, …) working with them.
 
 ## The project
 
-- **NX Play** is a SwiftUI macOS app. The app target is in `App/`; almost all the code is in the `Packages/NXPlayKit` Swift package.
-- **NX Play for iPhone and iPad** is in `iOS/`. The Mac builds and installs it.
+- **DroidPlay** is a SwiftUI macOS app. The app target is in `App/`; almost all the code is in the `Packages/NXPlayKit` Swift package.
+- **DroidPlay for iPhone and iPad** is in `iOS/`. The Mac builds and installs it.
 - **`nxplay`** is the bash script at the repo root, bundled into the app. It wraps [nxnative](https://github.com/seedds/nxnative)'s build scripts and plays the games it builds.
+- **DroidPlay is a fork of [NX Play](https://github.com/varyform/nx-native-wrapper)** (remote `upstream`), merged in from time to time. Android lives in nxplay's `--android` / `--apk` / game-app paths, the `Android*` Swift files and [droidnative](https://github.com/enjoyerofslop/droidnative), the nxnative checkout those build with. The app's identity (name, bundle ID `io.github.enjoyerofslop.droidplay`, support folder, update feed) is DroidPlay's; internal names (`NXPlayKit`, `nxplay`, `NXPLAY_*`) stay as NX Play has them, so its changes merge cleanly.
 
 ## Before you open a pull request
 

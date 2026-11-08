@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Build NX Play for iPhone and iPad (iOS/), signed with your Apple team, and install it on a device by cable or over
+# Build DroidPlay for iPhone and iPad (iOS/), signed with your Apple team, and install it on a device by cable or over
 # Wi-Fi.
 # usage: bin/install-ios <device UDID> [--team <team ID>]
-#   the UDIDs: xcrun devicectl list devices. The team: --team, else NX Play's (Settings › Devices), else the first
+#   the UDIDs: xcrun devicectl list devices. The team: --team, else DroidPlay's (Settings › Devices), else the first
 #   paid one Xcode knows (Xcode › Settings › Apple Accounts), else any.
-# NX Play runs the copy in its bundle (Resources/iOSApp) for Settings › Devices › Install NX Play, with
+# DroidPlay runs the copy in its bundle (Resources/iOSApp) for Settings › Devices › Install DroidPlay, with
 # NXPLAY_IOS_WORK pointing into its Application Support folder: the bundle itself is never written to.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -21,7 +21,7 @@ while (( $# )); do
 done
 [[ -n "$device" ]] || usage
 
-[[ -n "$team" ]] || team="$(defaults read com.varyform.nxplay teamID 2> /dev/null || true)"
+[[ -n "$team" ]] || team="$(defaults read io.github.enjoyerofslop.droidplay teamID 2> /dev/null || true)"
 if [[ -z "$team" ]]; then
   # AppleTeam.fromXcode's choice: a paid team first (a Personal Team lacks the Increased Memory Limit)
   team="$(defaults export com.apple.dt.Xcode - 2> /dev/null | python3 -c '
@@ -44,7 +44,7 @@ if command -v mise > /dev/null && mise which xcodegen > /dev/null 2>&1; then
 else
   (cd "$work/src/iOS" && xcodegen generate --quiet)
 fi
-echo "building NX Play for iOS, signed with team $team"
+echo "building DroidPlay for iOS, signed with team $team"
 xcode_build() {
   xcodebuild -project "$work/src/iOS/NXPlayIOS.xcodeproj" -scheme NXPlayIOS -configuration Release \
     -destination "$1" -derivedDataPath "$work/derived" DEVELOPMENT_TEAM="$team" \
@@ -67,5 +67,5 @@ bundle="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plis
 if xcrun devicectl device process launch --device "$device" --terminate-existing "$bundle" > /dev/null; then
   echo "installed and opened on the device"
 else
-  echo "installed; unlock the device and open NX Play"
+  echo "installed; unlock the device and open DroidPlay"
 fi

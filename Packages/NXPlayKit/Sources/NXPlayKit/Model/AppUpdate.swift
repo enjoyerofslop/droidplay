@@ -4,11 +4,11 @@ import Foundation
 import Observation
 import Security
 
-/// Updates from GitHub releases, for a released (Developer ID) NX Play only: a build from the checkout never replaces
+/// Updates from GitHub releases, for a released (Developer ID) DroidPlay only: a build from the checkout never replaces
 /// itself. On launch and once a day it asks GitHub for the latest release. A newer one's DMG is downloaded, checked
 /// against the SHA-256 GitHub gives for it, mounted out of sight, and its app checked: notarized, signed by the same
 /// team as the running app, the same bundle ID and the release's version. The app is copied out (staged) and
-/// replaces this one when NX Play quits, or at once with Restart to Update, which waits until nothing runs.
+/// replaces this one when DroidPlay quits, or at once with Restart to Update, which waits until nothing runs.
 @MainActor @Observable
 public final class AppUpdater {
     public enum State: Equatable, Sendable {
@@ -16,7 +16,7 @@ public final class AppUpdater {
         case checking
         case upToDate
         case downloading(version: String)
-        /// Staged in AppHome/Updates: installed when NX Play quits. Its changes since this version.
+        /// Staged in AppHome/Updates: installed when DroidPlay quits. Its changes since this version.
         case ready(version: String, notes: Changelog)
         case failed(String)
     }
@@ -25,7 +25,7 @@ public final class AppUpdater {
     public private(set) var lastCheck: Date?
     /// When the staged update became ready: after a few days still running, the reminder gets warmer.
     public private(set) var readySince: Date?
-    /// A reason updates can't work that the player can fix (NX Play run from the DMG or Downloads): the library says
+    /// A reason updates can't work that the player can fix (DroidPlay run from the DMG or Downloads): the library says
     /// so. Passing problems (offline, GitHub busy) only show in Settings › Updates and are tried again the next day.
     public private(set) var problem: String?
     public let currentVersion: String
@@ -33,7 +33,7 @@ public final class AppUpdater {
     public let isEnabled: Bool
 
     static let latestRelease = URL(
-        string: "https://api.github.com/repos/varyform/nx-native-wrapper/releases/latest")!
+        string: "https://api.github.com/repos/enjoyerofslop/droidplay/releases/latest")!
 
     @ObservationIgnored private let bundle: URL
     @ObservationIgnored private let teamID: String?
@@ -100,7 +100,7 @@ public final class AppUpdater {
         }
     }
 
-    static let moveToApplications = "Move NX Play into Applications to get updates."
+    static let moveToApplications = "Move DroidPlay into Applications to get updates."
 
     /// Tests and screenshots: a state without GitHub.
     func preview(_ state: State, readySince: Date? = nil, problem: String? = nil) {
@@ -133,7 +133,7 @@ public final class AppUpdater {
     // MARK: - Download and check
 
     private var stagedApp: URL? {
-        let app = folder.appending(path: "staged/NX Play.app")
+        let app = folder.appending(path: "staged/DroidPlay.app")
         return FileManager.default.fileExists(atPath: app.path) ? app : nil
     }
 
@@ -165,7 +165,7 @@ public final class AppUpdater {
         let bundleID = bundleID
         let teamID = teamID
         let version = release.version
-        let staged = folder.appending(path: "staged/NX Play.app")
+        let staged = folder.appending(path: "staged/DroidPlay.app")
         try await Task.detached {
             try Self.verifyDigest(of: dmg, expected: expected)
             try Self.stage(
@@ -210,18 +210,18 @@ public final class AppUpdater {
             }
         }
 
-        let app = mount.appending(path: "NX Play.app")
+        let app = mount.appending(path: "DroidPlay.app")
         let info = NSDictionary(contentsOf: app.appending(path: "Contents/Info.plist"))
         guard info?["CFBundleIdentifier"] as? String == bundleID,
             info?["CFBundleShortVersionString"] as? String == version
-        else { throw UpdateError("the DMG doesn't hold NX Play \(version)") }
+        else { throw UpdateError("the DMG doesn't hold DroidPlay \(version)") }
         guard run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app.path]).code == 0
         else {
             throw UpdateError("the new app's signature is broken")
         }
         let details = run("/usr/bin/codesign", ["-dv", app.path]).output
         guard let teamID, details.contains("TeamIdentifier=\(teamID)\n") else {
-            throw UpdateError("the new app isn't signed by NX Play's developer")
+            throw UpdateError("the new app isn't signed by DroidPlay's developer")
         }
         if assess, run("/usr/sbin/spctl", ["--assess", "--type", "execute", app.path]).code != 0 {
             throw UpdateError("the new app isn't notarized")

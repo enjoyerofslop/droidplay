@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// NX Play's logo: the app icon's artwork without its background (App/AppIcon.icon/Assets: plate.svg, joycons.svg,
+/// DroidPlay's logo: the app icon's artwork without its background (App/AppIcon.icon/Assets: plate.svg, joycons.svg,
 /// play.svg), in the SVGs' own coordinates, cropped to the controller (x 255–769, y 322–702). Its colors are the SVGs'
 /// untagged ones, which the icon reads as Display P3.
 struct Logo: View {

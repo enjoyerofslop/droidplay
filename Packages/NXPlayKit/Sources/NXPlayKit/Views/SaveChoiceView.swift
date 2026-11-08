@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Play's question when the game's Mac app has a save of its own that differs from NX Play's: which one the game
+/// Play's question when the game's Mac app has a save of its own that differs from DroidPlay's: which one the game
 /// plays on from. Nothing is copied or deleted; the other save stays as it is. In Console Mode the controller moves
 /// the highlight (Library.handleSaveQuestion).
 struct SaveChoiceView: View {
@@ -15,7 +15,7 @@ struct SaveChoiceView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Which save should \(question.game.name) use?").font(.title2.bold())
                     Text(
-                        "Its Mac app, opened from Finder, keeps a save of its own, and it differs from NX Play\u{2019}s. The other one stays as it is."
+                        "Its Mac app, opened from Finder, keeps a save of its own, and it differs from DroidPlay\u{2019}s. The other one stays as it is."
                     )
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -23,7 +23,7 @@ struct SaveChoiceView: View {
             }
             VStack(spacing: 8) {
                 row(
-                    .nxplay, "NX Play\u{2019}s Save", detail: saved(save.nxplaySaved),
+                    .nxplay, "DroidPlay\u{2019}s Save", detail: saved(save.nxplaySaved),
                     newer: !save.appIsNewer && save.nxplaySaved != nil)
                 row(.app, "The Mac App\u{2019}s Save", detail: saved(save.appSaved), newer: save.appIsNewer)
                 row(

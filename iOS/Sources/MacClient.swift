@@ -1,6 +1,6 @@
 import Foundation
 
-/// What NX Play's server on the Mac answers (NXPlayKit's Library+Remote.swift has the other side).
+/// What DroidPlay's server on the Mac answers (NXPlayKit's Library+Remote.swift has the other side).
 struct MacInfo: Decodable, Sendable {
     struct Team: Decodable, Sendable {
         let name: String
@@ -63,7 +63,7 @@ struct DeviceGames: Decodable, Sendable {
     let removed: [String]
 }
 
-/// A Mac running NX Play, and the pairing code it showed in Settings › Devices › iPhone & iPad App.
+/// A Mac running DroidPlay, and the pairing code it showed in Settings › Devices › iPhone & iPad App.
 struct MacClient: Sendable {
     struct Failure: LocalizedError {
         let message: String

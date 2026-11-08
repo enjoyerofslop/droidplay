@@ -1,19 +1,19 @@
 import AppKit
 import SwiftUI
 
-/// NX Play › About NX Play: the standard panel (icon, name, version) with credits: who makes it, where it lives, what it
+/// DroidPlay › About DroidPlay: the standard panel (icon, name, version) with credits: who makes it, where it lives, what it
 /// builds on. The copyright line comes from Info.plist (NSHumanReadableCopyright, project.yml).
 public struct AboutMenuItem: View {
     public init() {}
 
     public var body: some View {
-        Button("About NX Play") {
+        Button("About DroidPlay") {
             NSApp.orderFrontStandardAboutPanel(options: [.credits: Self.credits])
             NSApp.activate()
         }
     }
 
-    static let repository = URL(string: "https://github.com/varyform/nx-native-wrapper")!
+    static let repository = URL(string: "https://github.com/enjoyerofslop/droidplay")!
 
     /// Centred lines, small text, links in the accent colour; the panel scrolls them if they run long.
     static var credits: NSAttributedString {

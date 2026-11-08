@@ -31,7 +31,7 @@ struct IconBadges: View {
                     IconBadge(
                         text: "App", color: .teal,
                         help:
-                            "\(app.lastPathComponent): Play starts this app, with the game's save and NX Play's settings. A rebuild packs it again."
+                            "\(app.lastPathComponent): Play starts this app, with the game's save and DroidPlay's settings. A rebuild packs it again."
                     )
                 }
             }

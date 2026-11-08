@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Set up nx-native-wrapper on this Mac; safe to run again. Checks the Mac and Xcode (downloading its Metal
+# Set up DroidPlay on this Mac; safe to run again. Checks the Mac and Xcode (downloading its Metal
 # Toolchain, which the shader builds need, when missing), installs the tools
 # (Homebrew, Brewfile; mise.toml too when mise is there), the Python packages (uv, into .venv), clones
-# nxnative into ./nxnative, then builds NX Play and installs it into /Applications.
+# nxnative into ./nxnative and droidnative (its Android port) into ./droidnative, then builds DroidPlay and installs it into /Applications.
 #
 # usage: bin/setup [--check] [--no-app]
 #   --check   only report what is missing; change nothing
-#   --no-app  skip building and installing NX Play
-# NX Play runs this same script from its bundle (Settings › Setup), with:
-#   NXPLAY_HOME     its own folder (~/Library/Application Support/NX Play): uv's Python and cache go there, and the
+#   --no-app  skip building and installing DroidPlay
+# DroidPlay runs this same script from its bundle (Settings › Setup), with:
+#   NXPLAY_HOME     its own folder (~/Library/Application Support/DroidPlay): uv's Python and cache go there, and the
 #                   developer parts (mise, building the app) are left out
 #   NXPLAY_PROJECT  the folder with the Brewfile, pyproject.toml and uv.lock (default: this checkout)
 #   NXPLAY_VENV     the Python environment (default: .venv in the project folder)
@@ -27,7 +27,7 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/local/share/dotnet:$PATH"
 venv="${NXPLAY_VENV:-$project/.venv}"
 export UV_PROJECT_ENVIRONMENT="$venv"
 if (( app_run )); then
-  # everything NX Play installs in one folder, Python included (not whichever Python the Mac happens to have)
+  # everything DroidPlay installs in one folder, Python included (not whichever Python the Mac happens to have)
   export UV_PYTHON_INSTALL_DIR="$NXPLAY_HOME/python" UV_CACHE_DIR="$NXPLAY_HOME/uv-cache" UV_PYTHON_PREFERENCE=only-managed
   app=0
 fi
@@ -61,7 +61,7 @@ if [[ "$(uname -m)" == arm64 ]]; then ok "Apple silicon"
 else warn "Intel Mac: games cannot run on this Mac (the Mac host needs Apple silicon); IPAs and device installs still work"; fi
 macos="$(sw_vers -productVersion)"
 if (( ${macos%%.*} >= 15 )); then ok "macOS $macos"
-else fail "macOS $macos: NX Play needs macOS 15 or later"; fi
+else fail "macOS $macos: DroidPlay needs macOS 15 or later"; fi
 
 section "Xcode"
 developer="$(xcode-select -p 2>/dev/null || true)"
@@ -102,7 +102,7 @@ section "Python (.venv)"
 if ! command -v uv > /dev/null; then
   fail "uv is not installed: brew install uv"
 elif (( check )); then
-  # the venv's copy of uv.lock is the lock it was last synced to: a newer NX Play that adds a package asks for setup
+  # the venv's copy of uv.lock is the lock it was last synced to: a newer DroidPlay that adds a package asks for setup
   if "$venv/bin/python3" -c 'import lz4, capstone, fontTools, nsz, zbic' 2> /dev/null && cmp -s uv.lock "$venv/nxplay-uv.lock"; then
     ok "$("$venv/bin/python3" --version) with nxnative's packages"
   else fail "the Python packages are missing or out of date: uv sync --locked"; fi
@@ -125,22 +125,36 @@ if [[ -f "$repo/scripts/build_ipa_from_nsp.py" ]]; then
   tested="$(awk -F'\t' '$1 == "metal_macosx" { print $2 }' "$repo/dm/gfx/tools/dmsh_chain.lock" 2>/dev/null)"
   here="$(xcrun metal --version 2>/dev/null | head -1)"
   if [[ -n "$tested" && -n "$here" && "$here" != "$tested" ]]; then
-    warn "Metal compiler ${here#Apple metal version } isn't the one nxnative tested (${tested#Apple metal version }): builds stop unless you allow it in NX Play's Settings (Allow a Metal compiler nxnative didn't test), or pass nxplay --allow-other-metal"
+    warn "Metal compiler ${here#Apple metal version } isn't the one nxnative tested (${tested#Apple metal version }): builds stop unless you allow it in DroidPlay's Settings (Allow a Metal compiler nxnative didn't test), or pass nxplay --allow-other-metal"
   elif [[ -n "$tested" && -n "$here" ]]; then
     ok "Metal compiler matches the one nxnative tested"
   fi
 fi
 
+# droidnative, for Install on Android and Build Game App: nxnative with its Android port, a checkout beside nxnative. Optional, so a missing one only
+# warns; a checkout set up before the rename keeps its nxnative-android folder
+section "droidnative"
+if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then arepo="$NXNATIVE_ANDROID"
+elif [[ -d droidnative ]]; then arepo="droidnative"
+elif [[ -d nxnative-android ]]; then arepo="nxnative-android"
+elif [[ -d ../droidnative ]]; then arepo="../droidnative"
+else arepo="droidnative"; fi
+if [[ ! -f "$arepo/scripts/build_android_from_nsp.py" ]]; then
+  if (( check )); then warn "not cloned at $arepo (Install on Android needs it): git clone https://github.com/enjoyerofslop/droidnative.git droidnative"
+  else step "cloned into $arepo" "git clone failed" git clone --quiet https://github.com/enjoyerofslop/droidnative.git "$arepo"; fi
+fi
+if [[ -f "$arepo/scripts/build_android_from_nsp.py" ]]; then ok "$(cd "$arepo" && pwd) ($(git -C "$arepo" log -1 --format='%h, %cr'))"; fi
+
 section "Keys"
 keys="${NX_KEYS:-$HOME/.switch/prod.keys}"
 if [[ -f "$keys" ]]; then ok "prod.keys at $keys"
-else warn "no prod.keys at $keys: dump them from your own Switch and put them there (or choose the file in NX Play's Settings)"; fi
+else warn "no prod.keys at $keys: dump them from your own Switch and put them there (or choose the file in DroidPlay's Settings)"; fi
 
-# run from NX Play itself: there is nothing to build
+# run from DroidPlay itself: there is nothing to build
 if (( !app_run )); then
-  section "NX Play"
+  section "DroidPlay"
   if (( check )); then
-    if [[ -d "/Applications/NX Play.app" ]]; then ok "installed in /Applications"
+    if [[ -d "/Applications/DroidPlay.app" ]]; then ok "installed in /Applications"
     else warn "not installed: bin/install"; fi
   elif (( !app )); then
     warn "skipped (--no-app): bin/install builds and installs it"
@@ -159,4 +173,4 @@ if (( failures )); then
 fi
 if (( check )); then echo "${green}All set.${reset}"
 elif (( app_run )); then echo "${green}Done.${reset}"
-else echo "${green}Done.${reset} Open NX Play, choose your games folder (one subfolder per game) and press Play."; fi
+else echo "${green}Done.${reset} Open DroidPlay, choose your games folder (one subfolder per game) and press Play."; fi

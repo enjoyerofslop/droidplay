@@ -1,6 +1,6 @@
 name: NXPlay
 options:
-  bundleIdPrefix: com.varyform
+  bundleIdPrefix: io.github.enjoyerofslop
   deploymentTarget:
     macOS: "15.0"
   createIntermediateGroups: true
@@ -30,11 +30,11 @@ targets:
         buildPhase: resources
       - path: nxplay
         buildPhase: resources
-      # Help › NX Play Changelog, and an update's What's New (read from the downloaded app's copy)
+      # Help › DroidPlay Changelog, and an update's What's New (read from the downloaded app's copy)
       - path: CHANGELOG.md
         buildPhase: resources
     postCompileScripts:
-      # the setup NX Play runs from Settings › Setup: bin/setup with the files it reads (AppHome.setupProject)
+      # the setup DroidPlay runs from Settings › Setup: bin/setup with the files it reads (AppHome.setupProject)
       - name: Bundle the setup
         script: |
           dir="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Setup"
@@ -56,7 +56,7 @@ targets:
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/pyproject.toml
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/uv.lock
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/.python-version
-      # Settings › Devices › Install NX Play: bin/install-ios with the iOS app's source and the icon it shares
+      # Settings › Devices › Install DroidPlay: bin/install-ios with the iOS app's source and the icon it shares
       # (Library+IOSApp.swift), in the layout the script expects
       - name: Bundle the iOS app
         script: |
@@ -71,15 +71,15 @@ targets:
       - package: NXPlayKit
     settings:
       base:
-        PRODUCT_NAME: NX Play
-        PRODUCT_BUNDLE_IDENTIFIER: com.varyform.nxplay
+        PRODUCT_NAME: DroidPlay
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.enjoyerofslop.droidplay
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: App/Info.plist
         # Info.plist's NXSourceRoot (AppHome.sourceRoot); bin/release empties it
         NX_SOURCE_ROOT: $(SRCROOT)
-        INFOPLIST_KEY_CFBundleDisplayName: NX Play
+        INFOPLIST_KEY_CFBundleDisplayName: DroidPlay
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.games
-        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Oleh Khomei. MIT License."
+        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Oleh Khomei and the DroidPlay contributors. MIT License."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # runs nxplay, python, git and the game from the user's folders: no sandbox
         ENABLE_APP_SANDBOX: NO

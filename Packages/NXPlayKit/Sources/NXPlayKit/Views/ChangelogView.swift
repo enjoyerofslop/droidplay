@@ -52,7 +52,7 @@ struct ChangelogBlocks: View {
     }
 }
 
-/// Help › NX Play Changelog: every release, newest first.
+/// Help › DroidPlay Changelog: every release, newest first.
 public struct ChangelogView: View {
     public static let windowID = "changelog"
 
@@ -64,7 +64,7 @@ public struct ChangelogView: View {
         } else {
             ContentUnavailableView(
                 "No Changelog", systemImage: "doc.text",
-                description: Text("This copy of NX Play doesn't carry its changelog."))
+                description: Text("This copy of DroidPlay doesn't carry its changelog."))
         }
     }
 }
@@ -76,7 +76,7 @@ public struct ChangelogMenuItem: View {
     public init() {}
 
     public var body: some View {
-        Button("NX Play Changelog") { openWindow(id: ChangelogView.windowID) }
+        Button("DroidPlay Changelog") { openWindow(id: ChangelogView.windowID) }
     }
 }
 
@@ -93,7 +93,7 @@ struct WhatsNewButton: View {
                     ChangelogContent(changelog: notes)
                         .frame(width: 520, height: 460)
                 }
-                .help("What NX Play \(version) changes")
+                .help("What DroidPlay \(version) changes")
         }
     }
 }

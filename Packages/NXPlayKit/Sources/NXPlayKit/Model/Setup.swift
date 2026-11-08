@@ -126,7 +126,7 @@ struct SetupParser {
     private var section = ""
 
     static let sections: Set<String> = [
-        "Mac", "Xcode", "Tools", "Python (.venv)", "nxnative", "Keys", "NX Play",
+        "Mac", "Xcode", "Tools", "Python (.venv)", "nxnative", "Keys", "DroidPlay",
     ]
 
     mutating func read(_ line: String) {

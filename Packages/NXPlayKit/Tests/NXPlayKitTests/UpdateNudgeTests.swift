@@ -30,10 +30,10 @@ import Testing
 
         let early = UpdateBanner.message(
             "9.9", library: library, now: monday.addingTimeInterval(3600))
-        #expect(early == "NX Play 9.9 is ready. It installs when you quit.")
+        #expect(early == "DroidPlay 9.9 is ready. It installs when you quit.")
         let late = UpdateBanner.message(
             "9.9", library: library, now: monday.addingTimeInterval(4 * 86_400))
-        #expect(late.hasPrefix("NX Play 9.9 has been waiting since "))
+        #expect(late.hasPrefix("DroidPlay 9.9 has been waiting since "))
         #expect(late.hasSuffix("Restart to Update takes a few seconds."))
     }
 

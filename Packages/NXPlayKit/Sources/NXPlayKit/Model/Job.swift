@@ -10,14 +10,14 @@ public final class Job: Identifiable {
         case macApp
         /// Through Xcode: prepare the project, build it signed, install and start it.
         case install(Device)
-        /// Through nxnative-android and adb: build in the game folder's android folder, install and start it.
+        /// Through droidnative and adb: build in the game folder's android folder, install and start it.
         case android(AndroidDevice)
         /// The same build without a device, exported with the game's files for installing anywhere (nxplay --apk).
         case apk
         /// The game as an Android app of its own, without the nxnative app (nxplay --game-apk, --game-xapk).
         case gameApp(GameAppFormat)
 
-        /// Builds with nxnative-android, in the game folder's android folder.
+        /// Builds with droidnative, in the game folder's android folder.
         public var buildsForAndroid: Bool {
             switch self {
             case .android, .apk, .gameApp: true
@@ -30,7 +30,7 @@ public final class Job: Identifiable {
         public var rewritesTheMacBuild: Bool {
             switch self {
             case .ipa, .macApp, .install: true
-            // its own folder, <game folder>/android, with nxnative-android's code
+            // its own folder, <game folder>/android, with droidnative's code
             case .extract, .rebuild, .play, .android, .apk, .gameApp: false
             }
         }
@@ -110,7 +110,7 @@ public final class Job: Identifiable {
         return progress?.summary ?? "Starting…"
     }
 
-    /// A line from NX Play itself in the run's log (the save backup's).
+    /// A line from DroidPlay itself in the run's log (the save backup's).
     func note(_ line: String) {
         log.append([.own(line)])
     }
@@ -126,7 +126,7 @@ public final class Job: Identifiable {
         process.environment = command.environment
         if kind == .play {
             let answers = Pipe()
-            // an answer after nxplay has gone fails instead of raising SIGPIPE in NX Play
+            // an answer after nxplay has gone fails instead of raising SIGPIPE in DroidPlay
             _ = fcntl(answers.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1)
             process.standardInput = answers
             input = answers.fileHandleForWriting

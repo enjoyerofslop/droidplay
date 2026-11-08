@@ -2,7 +2,7 @@ import GameController
 import Observation
 
 /// A game controller as the launcher's remote: the d-pad or left stick moves through the games, A chooses, B goes
-/// back, Y reinstalls. Its own handling rather than the system's: the same buttons on every controller, as NX Play's
+/// back, Y reinstalls. Its own handling rather than the system's: the same buttons on every controller, as DroidPlay's
 /// Console Mode on the Mac.
 @MainActor @Observable
 final class Controller {

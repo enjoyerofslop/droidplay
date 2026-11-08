@@ -16,7 +16,7 @@ public struct SetupView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Setup").font(.title2.bold())
             Text(
-                "Switch games build with Xcode, a few Homebrew tools, Python and nxnative. NX Play installs all but Xcode and Homebrew itself, and keeps what it installs in one folder."
+                "Switch games build with Xcode, a few Homebrew tools, Python and nxnative. DroidPlay installs all but Xcode and Homebrew itself, and keeps what it installs in one folder."
             )
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -154,7 +154,7 @@ struct SetupBanner: View {
     var body: some View {
         HStack {
             Image(systemName: "wrench.and.screwdriver")
-            Text("NX Play needs a few tools before it can build games.")
+            Text("DroidPlay needs a few tools before it can build games.")
             Spacer()
             Button("Open Setup") { openWindow(id: SetupView.windowID) }
                 .buttonStyle(.borderedProminent)
@@ -165,7 +165,7 @@ struct SetupBanner: View {
     }
 }
 
-/// NX Play › Setup… and the Settings button.
+/// DroidPlay › Setup… and the Settings button.
 public struct SetupMenuItem: View {
     @Environment(\.openWindow) private var openWindow
 

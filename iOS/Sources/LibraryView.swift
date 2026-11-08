@@ -13,7 +13,7 @@ struct LibraryView: View {
                         ExpiryBanner().padding(.horizontal)
                         if launcher.offline {
                             Label(
-                                "\(launcher.mac?.name ?? "The Mac") isn't answering: it may be asleep, or NX Play closed.",
+                                "\(launcher.mac?.name ?? "The Mac") isn't answering: it may be asleep, or DroidPlay closed.",
                                 systemImage: "wifi.exclamationmark"
                             )
                             .foregroundStyle(.orange).padding(.horizontal)
@@ -58,7 +58,7 @@ struct LibraryView: View {
     }
 }
 
-// The fold's APIs are new in iOS 27.1. NX Play builds this app with the Mac's own Xcode, and an older one still has to
+// The fold's APIs are new in iOS 27.1. DroidPlay builds this app with the Mac's own Xcode, and an older one still has to
 // compile it, without them: Swift can't ask for the SDK's version, so this asks for its SwiftUI's (8.1 in Xcode 27.2).
 extension GeometryProxy {
     /// An iPhone Duo's fold when it runs top to bottom. A fold across the screen needs nothing: the grid scrolls past it.
@@ -89,7 +89,7 @@ extension View {
     }
 }
 
-/// NX Play's icon, its name, and the Mac it's connected to.
+/// DroidPlay's icon, its name, and the Mac it's connected to.
 private struct Header: View {
     @Environment(Launcher.self) private var launcher
 
@@ -106,7 +106,7 @@ private struct Header: View {
         let state = launcher.offline ? "\(mac) isn't answering" : "connected to \(mac)"
         // the whole line on an iPad; on an iPhone's narrow bar, the Mac's name alone
         ViewThatFits {
-            line(Text("NX Play").font(.headline), Text("(\(state))").foregroundStyle(.secondary))
+            line(Text("DroidPlay").font(.headline), Text("(\(state))").foregroundStyle(.secondary))
             line(Text(launcher.offline ? state : mac).font(.headline))
         }
     }
@@ -132,7 +132,7 @@ private struct LibraryMenu: View {
                 Text("Signed by \(team.name)\(team.free ? " (Personal Team)" : "")")
             }
             if let expires = Expiry.launcher {
-                Text("NX Play: \(Expiry.text(expires).lowercased()), \(expires.formatted(date: .abbreviated, time: .omitted))")
+                Text("DroidPlay: \(Expiry.text(expires).lowercased()), \(expires.formatted(date: .abbreviated, time: .omitted))")
             }
             Button("Choose Another Device") { launcher.forgetDevice() }
             Button("Unpair", role: .destructive) { launcher.unpair() }
@@ -143,7 +143,7 @@ private struct LibraryMenu: View {
     }
 }
 
-/// Games about to stop opening, and NX Play itself: installing again from the Mac renews them.
+/// Games about to stop opening, and DroidPlay itself: installing again from the Mac renews them.
 private struct ExpiryBanner: View {
     @Environment(Launcher.self) private var launcher
 
@@ -151,7 +151,7 @@ private struct ExpiryBanner: View {
         let games = launcher.expiring
         if Expiry.isSoon(Expiry.launcher), let date = Expiry.launcher {
             Label(
-                "NX Play itself: \(Expiry.text(date).lowercased()). Reinstall it from the Mac: Settings › Devices › Install NX Play.",
+                "DroidPlay itself: \(Expiry.text(date).lowercased()). Reinstall it from the Mac: Settings › Devices › Install DroidPlay.",
                 systemImage: "clock.badge.exclamationmark"
             )
             .foregroundStyle(.orange)

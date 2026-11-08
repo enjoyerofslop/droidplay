@@ -6,7 +6,7 @@ struct NXPlayApp: App {
     @State private var library = Library.forLaunch()
 
     var body: some Scene {
-        Window("NX Play", id: "main") {
+        Window("DroidPlay", id: "main") {
             RootView()
                 .library(library)
         }
@@ -71,7 +71,7 @@ struct NXPlayApp: App {
         }
         .windowResizability(.contentSize)
 
-        Window("Uninstall NX Play", id: UninstallView.windowID) {
+        Window("Uninstall DroidPlay", id: UninstallView.windowID) {
             UninstallView()
                 .library(library)
         }
@@ -82,7 +82,7 @@ struct NXPlayApp: App {
         }
         .windowResizability(.contentSize)
 
-        Window("NX Play Changelog", id: ChangelogView.windowID) {
+        Window("DroidPlay Changelog", id: ChangelogView.windowID) {
             ChangelogView()
         }
         .defaultSize(width: 620, height: 700)

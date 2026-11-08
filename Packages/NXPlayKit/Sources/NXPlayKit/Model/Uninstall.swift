@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import Observation
 
-/// NX Play › Uninstall NX Play…: everything NX Play put on this Mac, and only that. Its folder (what Setup installed:
+/// DroidPlay › Uninstall DroidPlay…: everything DroidPlay put on this Mac, and only that. Its folder (what Setup installed:
 /// nxnative, Python, uv's cache, a staged update), its settings, caches and saved window state, and the app, which goes
 /// to the Trash; the Homebrew tools Setup installed only when asked, since other software may use them. Never the
 /// games folder (the games, their builds and the Mac saves in them), prod.keys or the save backup repository: those
@@ -54,7 +54,7 @@ public final class Uninstaller {
     public init(
         home: URL = FileManager.default.homeDirectoryForCurrentUser, appHome: URL = AppHome.folder,
         bundle: URL = Bundle.main.bundleURL,
-        domain: String = Bundle.main.bundleIdentifier ?? "com.varyform.nxplay",
+        domain: String = Bundle.main.bundleIdentifier ?? "io.github.enjoyerofslop.droidplay",
         dockDomain: String = "com.apple.dock"
     ) {
         self.home = home
@@ -67,7 +67,7 @@ public final class Uninstaller {
             items.insert(
                 Item(
                     id: "dock", title: "Dock icon",
-                    detail: "NX Play kept in the Dock; the Dock restarts",
+                    detail: "DroidPlay kept in the Dock; the Dock restarts",
                     kind: .dock, url: nil),
                 at: items.count - 1)
         }
@@ -114,7 +114,7 @@ public final class Uninstaller {
             items.append(Item(id: id, title: title, detail: detail, kind: .folder, url: url))
         }
         folder(
-            "home", "NX Play's folder", "nxnative, Python and its packages, a downloaded update",
+            "home", "DroidPlay's folder", "nxnative, Python and its packages, a downloaded update",
             appHome)
         folder(
             "caches", "Caches", "Downloaded artwork and web caches",
@@ -132,7 +132,7 @@ public final class Uninstaller {
                 kind: .settings, url: library.appending(path: "Preferences/\(domain).plist")))
         items.append(
             Item(
-                id: "app", title: "NX Play", detail: "The app, moved to the Trash", kind: .app,
+                id: "app", title: "DroidPlay", detail: "The app, moved to the Trash", kind: .app,
                 url: bundle))
         return items
     }
@@ -218,7 +218,7 @@ public final class Uninstaller {
     // MARK: - Uninstall
 
     /// Removes the tools when asked, moves the app to the Trash, and quits; the shell started here removes the rest
-    /// once NX Play has exited.
+    /// once DroidPlay has exited.
     public func uninstall(environment: [String: String]) async {
         guard phase != .removingTools, phase != .finishing else { return }
         phase = .idle
@@ -240,7 +240,7 @@ public final class Uninstaller {
             }
         }
         phase = .finishing
-        // the Dock restarts while NX Play still runs: one that stayed up could write its list, pin included, back
+        // the Dock restarts while DroidPlay still runs: one that stayed up could write its list, pin included, back
         if Self.removeDockEntries(of: domain, in: dockDomain) > 0, dockDomain == "com.apple.dock" {
             _ = await Task.detached { Self.run("/usr/bin/killall", ["Dock"]) }.value
         }

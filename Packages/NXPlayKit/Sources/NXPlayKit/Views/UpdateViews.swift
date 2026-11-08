@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Above the library once an update is staged: it installs when NX Play quits, or now.
+/// Above the library once an update is staged: it installs when DroidPlay quits, or now.
 struct UpdateBanner: View {
     let version: String
     let notes: Changelog
@@ -27,13 +27,13 @@ struct UpdateBanner: View {
     /// What the banner says: ready, still waiting after a few days (kindly), or restarting.
     static func message(_ version: String, library: Library, now: Date) -> String {
         if library.quitsWhenIdle {
-            return "NX Play restarts with \(version) once the running game or build ends."
+            return "DroidPlay restarts with \(version) once the running game or build ends."
         }
         if let since = library.updater.waitingSince(now: now) {
             return
-                "NX Play \(version) has been waiting since \(since.formatted(.dateTime.weekday(.wide))). Restart to Update takes a few seconds."
+                "DroidPlay \(version) has been waiting since \(since.formatted(.dateTime.weekday(.wide))). Restart to Update takes a few seconds."
         }
-        return "NX Play \(version) is ready. It installs when you quit."
+        return "DroidPlay \(version) is ready. It installs when you quit."
     }
 }
 
@@ -45,7 +45,7 @@ struct UpdateProblemBanner: View {
     var body: some View {
         HStack {
             Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
-            Text("NX Play can't update itself from here. \(problem)")
+            Text("DroidPlay can't update itself from here. \(problem)")
             Spacer()
             Button("Show in Finder") {
                 NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])

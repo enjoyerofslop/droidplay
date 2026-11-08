@@ -129,9 +129,9 @@ private struct SaveChoiceRow: View {
 
     private var text: String {
         switch choice {
-        case .nxplay: "Play uses NX Play\u{2019}s save, not the Mac app\u{2019}s own."
-        case .app: "Play uses the Mac app\u{2019}s own save, not NX Play\u{2019}s."
-        case .newer: "Play uses whichever save is newer: NX Play\u{2019}s or the Mac app\u{2019}s own."
+        case .nxplay: "Play uses DroidPlay\u{2019}s save, not the Mac app\u{2019}s own."
+        case .app: "Play uses the Mac app\u{2019}s own save, not DroidPlay\u{2019}s."
+        case .newer: "Play uses whichever save is newer: DroidPlay\u{2019}s or the Mac app\u{2019}s own."
         }
     }
 }

@@ -2,8 +2,8 @@ import Foundation
 
 /// A game's own choices, in nxnative's store (docs/frontends.md, Saved choices): the preferences domain of the game's
 /// Mac app, `org.nxnative.<title ID>`, one string per setting under `launcher.<variable>`. The Mac app's launcher and
-/// its settings window read and write the same keys, so every view of a game's choices agrees. NX Play's global values
-/// stay in NX Play: a play passes them in the environment, under the game's own.
+/// its settings window read and write the same keys, so every view of a game's choices agrees. DroidPlay's global values
+/// stay in DroidPlay: a play passes them in the environment, under the game's own.
 struct SavedChoices {
     let defaults: UserDefaults
 

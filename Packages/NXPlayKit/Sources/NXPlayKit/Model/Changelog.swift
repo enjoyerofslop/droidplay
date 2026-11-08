@@ -1,6 +1,6 @@
 import Foundation
 
-/// CHANGELOG.md, as far as NX Play draws it: a section per release ("## 1.7.5 — 2026-10-28", "## Unreleased"), each
+/// CHANGELOG.md, as far as DroidPlay draws it: a section per release ("## 1.7.5 — 2026-10-28", "## Unreleased"), each
 /// with its "### Added" headings, "- " items and paragraphs; inline markdown stays in the text, and image lines (the
 /// release page's screenshots) are left out. A release's notes on
 /// GitHub are one section's body, without the "##" line: they read as one untitled section.

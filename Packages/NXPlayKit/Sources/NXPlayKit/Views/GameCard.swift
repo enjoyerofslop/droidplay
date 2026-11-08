@@ -114,7 +114,7 @@ struct GameBadge: View {
             if game.isCopying {
                 Badge(text: "Copying…", color: .orange)
                     .help(
-                        "Finder is still copying a game file here; NX Play waits until it's complete."
+                        "Finder is still copying a game file here; DroidPlay waits until it's complete."
                     )
             } else {
                 switch game.state {

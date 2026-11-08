@@ -11,7 +11,7 @@ public struct ProfileCommit: Equatable, Hashable, Sendable, Identifiable {
 
 /// nxnative's changes to the profiles of the games built here, since each was built: what the next play's rebuild
 /// brings them. A build's launcher records the nxnative tree it was made from (nxplay's "# nxnative tree" line); the
-/// commit with that tree is where its news start, and they run to the upstream's tip, which NX Play fetches itself
+/// commit with that tree is where its news start, and they run to the upstream's tip, which DroidPlay fetches itself
 /// (only fetches: nxplay still moves the checkout when a game plays).
 enum ProfileNews {
     /// The same, each game's from the checkout it builds with: `own` names the games pinned to theirs.

@@ -58,7 +58,7 @@
         }
 
         @MainActor func makeLibrary() -> Library {
-            let suite = "com.varyform.nxplay.screenshots"
+            let suite = "io.github.enjoyerofslop.droidplay.screenshots"
             let defaults = UserDefaults(suiteName: suite)!
             defaults.removePersistentDomain(forName: suite)
             let library = Library(defaults: defaults, isScreenshot: true)

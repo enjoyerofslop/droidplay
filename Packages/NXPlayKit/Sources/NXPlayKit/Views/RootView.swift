@@ -17,7 +17,7 @@ public struct RootView: View {
     public var body: some View {
         content
             .frame(minWidth: 720, minHeight: 540)
-            .navigationTitle(library.root?.lastPathComponent ?? "NX Play")
+            .navigationTitle(library.root?.lastPathComponent ?? "DroidPlay")
             .navigationSubtitle(
                 library.root.map { ($0.path as NSString).abbreviatingWithTildeInPath } ?? ""
             )

@@ -100,7 +100,7 @@ public struct LogLine: Hashable, Sendable {
         segments = []
     }
 
-    /// A line from NX Play or nxplay itself, blue, set apart from nxnative's output (nxplay's say).
+    /// A line from DroidPlay or nxplay itself, blue, set apart from nxnative's output (nxplay's say).
     static func own(_ text: String) -> LogLine {
         var style = ANSIStyle()
         style.foreground = .standard(4)

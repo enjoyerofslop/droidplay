@@ -3,7 +3,7 @@ import Foundation
 /// A checkout build never updates itself, so its update notices can't be seen. Launched with
 /// `-NXPlayPreviewUpdate ready|waiting|problem`, it fakes one instead, with the changelog's Unreleased notes:
 ///
-///     open -a "NX Play" --args -NXPlayPreviewUpdate waiting
+///     open -a "DroidPlay" --args -NXPlayPreviewUpdate waiting
 ///
 /// Released apps ignore it. Restart to Update just quits: nothing is installed.
 extension AppUpdater {

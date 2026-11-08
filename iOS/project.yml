@@ -1,4 +1,4 @@
-# NX Play for iPhone and iPad: a launcher for the games NX Play installs. It lists the Mac's games and asks the Mac to build and
+# DroidPlay for iPhone and iPad: a launcher for the games DroidPlay installs. It lists the Mac's games and asks the Mac to build and
 # install one; iOS doesn't let one app install another. Built and installed from the Mac: bin/install-ios <UDID>.
 name: NXPlayIOS
 options:
@@ -18,14 +18,14 @@ targets:
     platform: iOS
     sources:
       - path: Sources
-      # NX Play's own icon (Icon Composer, shared with the Mac app); Xcode compiles it into the asset catalog
+      # DroidPlay's own icon (Icon Composer, shared with the Mac app); Xcode compiles it into the asset catalog
       - path: ../App/AppIcon.icon
         type: file
         buildPhase: resources
     info:
       path: Gen/Info.plist
       properties:
-        CFBundleDisplayName: NX Play
+        CFBundleDisplayName: DroidPlay
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -36,7 +36,7 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        NSLocalNetworkUsageDescription: NX Play finds your Mac on the local network to list your games and install them on this device.
+        NSLocalNetworkUsageDescription: DroidPlay finds your Mac on the local network to list your games and install them on this device.
         NSBonjourServices:
           - _nxplay._tcp
         # plain HTTP to <mac>.local: the pairing code guards it, and it never leaves the local network
@@ -46,7 +46,7 @@ targets:
     settings:
       base:
         # the team in the ID, as nxnative's games do: a Personal Team can't take an ID someone else registered
-        PRODUCT_BUNDLE_IDENTIFIER: org.nxplay.ios.$(DEVELOPMENT_TEAM)
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.enjoyerofslop.droidplay.ios.$(DEVELOPMENT_TEAM)
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: NO

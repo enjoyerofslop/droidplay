@@ -93,7 +93,7 @@ struct TopBar: View {
         HStack(spacing: 20) {
             HStack(spacing: 12) {
                 Logo().frame(height: 30)
-                Text("NX Play")
+                Text("DroidPlay")
             }
             .font(.title2.weight(.bold))
             if case .ready(let version, _) = library.updater.state {

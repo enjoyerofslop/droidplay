@@ -13,6 +13,6 @@
       <string>_nxplay._tcp</string>
     </array>
     <key>NSLocalNetworkUsageDescription</key>
-    <string>NX Play on your iPhone or iPad finds this Mac on the local network to list your games and install them there.</string>
+    <string>DroidPlay on your iPhone or iPad finds this Mac on the local network to list your games and install them there.</string>
   </dict>
 </plist>

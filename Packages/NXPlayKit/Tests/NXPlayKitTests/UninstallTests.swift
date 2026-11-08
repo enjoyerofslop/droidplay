@@ -21,9 +21,9 @@ import Testing
 
     @Test func listsOnlyWhatExists() throws {
         let home = root.appending(path: "home")
-        let appHome = try make("home/Library/Application Support/NX Play")
+        let appHome = try make("home/Library/Application Support/DroidPlay")
         _ = try make("home/Library/Caches/com.example.nxplay")
-        let bundle = try make("Applications/NX Play.app")
+        let bundle = try make("Applications/DroidPlay.app")
         let items = Uninstaller.items(
             home: home, appHome: appHome, bundle: bundle, domain: "com.example.nxplay")
         #expect(items.map(\.id) == ["home", "caches", "settings", "app"])  // no web storage or window state here
@@ -61,16 +61,16 @@ import Testing
         }
         let apps = [
             app("com.apple.Safari", "/Applications/Safari.app"),
-            app("com.varyform.nxplay", "/Applications/NX Play.app"),
+            app("io.github.enjoyerofslop.droidplay", "/Applications/DroidPlay.app"),
             app("dev.zed.Zed", "/Applications/Zed.app"),
-            app("com.varyform.nxplay", "/Users/me/Apps/NX Play.app"),
+            app("io.github.enjoyerofslop.droidplay", "/Users/me/Apps/DroidPlay.app"),
         ]
         CFPreferencesSetAppValue("persistent-apps" as CFString, apps as CFArray, dock as CFString)
         CFPreferencesSetAppValue("orientation" as CFString, "left" as CFString, dock as CFString)
         CFPreferencesAppSynchronize(dock as CFString)
 
-        #expect(Uninstaller.dockEntries(of: "com.varyform.nxplay", in: dock) == 2)
-        #expect(Uninstaller.removeDockEntries(of: "com.varyform.nxplay", in: dock) == 2)
+        #expect(Uninstaller.dockEntries(of: "io.github.enjoyerofslop.droidplay", in: dock) == 2)
+        #expect(Uninstaller.removeDockEntries(of: "io.github.enjoyerofslop.droidplay", in: dock) == 2)
         let left = try #require(
             CFPreferencesCopyAppValue("persistent-apps" as CFString, dock as CFString)
                 as? [[String: Any]])
@@ -82,7 +82,7 @@ import Testing
         #expect(
             CFPreferencesCopyAppValue("orientation" as CFString, dock as CFString) as? String
                 == "left")
-        #expect(Uninstaller.removeDockEntries(of: "com.varyform.nxplay", in: dock) == 0)  // nothing more
+        #expect(Uninstaller.removeDockEntries(of: "io.github.enjoyerofslop.droidplay", in: dock) == 0)  // nothing more
     }
 
     @Test func keepsOnlyNamesFromHomebrewsOutput() {
@@ -101,7 +101,7 @@ import Testing
     }
 
     @Test func cleansUpOnceTheAppHasQuit() async throws {
-        let appHome = try make("NX Play")
+        let appHome = try make("DroidPlay")
         let caches = try make("Caches/x")
         let domain = "nxplay-uninstall-test-\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: domain))

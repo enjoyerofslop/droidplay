@@ -71,7 +71,7 @@ struct GameActions: View {
                 Button("Look Again", systemImage: "arrow.clockwise") { library.refreshDevices() }
             }
             .disabled(busy || kept || game?.isExtracted != true || game?.canBuildIPA != true)
-            // nxnative-android builds in its own folder, so a kept build doesn't stop it; it reads NSPs, XCIs and NUPs (a checkout without NUP support stops in nxplay), not dumps
+            // droidnative builds in its own folder, so a kept build doesn't stop it; it reads NSPs, XCIs and NUPs (a checkout without NUP support stops in nxplay), not dumps
             Menu("Install on Android", systemImage: "candybarphone") {
                 if library.androidDevices.isEmpty {
                     Text(
@@ -118,7 +118,7 @@ struct GameActions: View {
                 game.map(library.buildIPA)
             }
             .disabled(busy || kept || game?.canBuildIPA != true)
-            // a standalone app for the Dock and Launchpad; NX Play keeps playing from the folder
+            // a standalone app for the Dock and Launchpad; DroidPlay keeps playing from the folder
             Button(
                 game?.macAppURL == nil
                     ? "Make Mac App"

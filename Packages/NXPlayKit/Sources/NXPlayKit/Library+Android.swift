@@ -1,11 +1,11 @@
 import Foundation
 
-/// Install on Android: nxnative-android, the fork of nxnative that carries its Android port (seedds/nxnative stays
+/// Install on Android: droidnative, the fork of nxnative that carries its Android port (seedds/nxnative stays
 /// Apple-only), builds the game in `<game folder>/android` and installs it on a device with adb, then starts it
 /// there (nxplay --android). It has a checkout of its own, set in Settings › Devices, which can be a developer's
 /// checkout of a branch: nxplay follows its upstream, and stays on a branch that has none.
 extension Library {
-    /// The marker of an nxnative-android checkout, which Settings and the command check.
+    /// The marker of a droidnative checkout, which Settings and the command check.
     nonisolated static let androidScript = "scripts/build_android_from_nsp.py"
 
     /// The checkout Install on Android builds with, ~ expanded.
@@ -48,14 +48,14 @@ extension Library {
     }
 
     /// nxplay --android's or --apk's command. The prod.keys were checked with the other kinds'; the Mac's nxnative
-    /// checkout isn't needed, as nxplay builds with nxnative-android's (NXNATIVE_ANDROID).
+    /// checkout isn't needed, as nxplay builds with droidnative's (NXNATIVE_ANDROID).
     func androidCommand(
         _ kind: Job.Kind, _ game: Game, script: URL, keys: String, lang: [String]
     ) -> NXPlayCommand? {
         let repo = nxnativeAndroidRepo
         guard FileManager.default.fileExists(atPath: repo + "/" + Self.androidScript) else {
             problem = """
-                No nxnative-android checkout at \(repo). Clone https://github.com/RogelioLB/nxnative-android \
+                No droidnative checkout at \(repo). Clone https://github.com/enjoyerofslop/droidnative \
                 there, or set its folder in Settings › Devices.
                 """
             return nil

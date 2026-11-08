@@ -1,6 +1,6 @@
 import Foundation
 
-/// Game › Remove Game…: what removing a game deletes, and what stays. Only what NX Play and nxnative put in the game's
+/// Game › Remove Game…: what removing a game deletes, and what stays. Only what DroidPlay and nxnative put in the game's
 /// folder goes: the game files (a dump's base, updates and dlc folders), the build, the survey, the IPAs, the Mac
 /// app and the Android build's folder (its copies of the game files and its build; the saves are on the device); anything else the player keeps there (a mod, notes) stays, and the folder goes only once it is empty.
 ///

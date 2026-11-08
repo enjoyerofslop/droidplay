@@ -17,7 +17,7 @@ struct UpdateCard: View {
                 HStack(spacing: 14) {
                     Logo().frame(height: 40)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("NX Play \(version)").font(.largeTitle.bold())
+                        Text("DroidPlay \(version)").font(.largeTitle.bold())
                         Text(Self.subtitle(library: library))
                             .font(.title3).foregroundStyle(.white.opacity(0.7))
                     }

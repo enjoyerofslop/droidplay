@@ -2,14 +2,14 @@ import AppKit
 import GameController
 import Observation
 
-/// The game controllers as a remote for NX Play: the D-pad or left stick moves the selection (repeating while held),
+/// The game controllers as a remote for DroidPlay: the D-pad or left stick moves the selection (repeating while held),
 /// A plays, B backs out, Y shows a waiting update, Menu toggles Console Mode. A, B and Y are the Switch's, as the games
 /// take them (faceButtons): on an Xbox or PlayStation pad, A is the right button. Every connected controller drives it, each with its own held
 /// direction. Any controller GameController knows works: Joy-Con, Pro Controller, Xbox, DualShock / DualSense, 8BitDo.
-/// macOS gives controller input only to the frontmost app, so a running game's input never reaches NX Play.
+/// macOS gives controller input only to the frontmost app, so a running game's input never reaches DroidPlay.
 ///
 /// In a game each controller is a player of its own (nxnative's dm/host/front_mac.m): the first one connected is
-/// player 1, together with the keyboard, the next player 2, up to 8. NX Play numbers them the same way, in the order
+/// player 1, together with the keyboard, the next player 2, up to 8. DroidPlay numbers them the same way, in the order
 /// GameController lists them, which is the order the game takes them in when it starts, and lights each controller's
 /// player lights to match.
 @MainActor @Observable

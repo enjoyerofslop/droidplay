@@ -1,6 +1,6 @@
 import Foundation
 
-/// Where NX Play keeps what it installs, in one folder: `~/Library/Application Support/NX Play` holds the nxnative
+/// Where DroidPlay keeps what it installs, in one folder: `~/Library/Application Support/DroidPlay` holds the nxnative
 /// checkout, the Python environment and the Python uv installs for it, and uv's cache. Homebrew's tools are the only
 /// other thing setup installs. A complete uninstall removes this folder; the games folder is the player's.
 ///
@@ -10,7 +10,7 @@ import Foundation
 public enum AppHome {
     public static var folder: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appending(path: "NX Play", directoryHint: .isDirectory)
+            .appending(path: "DroidPlay", directoryHint: .isDirectory)
     }
 
     /// The checkout the app was built from, when it still exists; nil for a released app.
@@ -33,16 +33,23 @@ public enum AppHome {
         return folder.appending(path: "nxnative").path
     }
 
-    /// nxnative-android, for Install on Android, where nxplay looks for it: beside nxnative for a build from a checkout
-    /// (./nxnative-android, else ../nxnative-android), else in our own folder.
+    /// droidnative, for Install on Android, where nxplay looks for it: beside nxnative for a build from a checkout
+    /// (./droidnative, else ../droidnative), else in our own folder. A checkout set up before the rename keeps its
+    /// nxnative-android folder, found when there is no droidnative one.
     public static var defaultNXNativeAndroid: String {
-        if let sourceRoot {
-            let inside = sourceRoot.appending(path: "nxnative-android")
-            return FileManager.default.fileExists(atPath: inside.path)
-                ? inside.path
-                : sourceRoot.deletingLastPathComponent().appending(path: "nxnative-android").path
+        let fm = FileManager.default
+        func pick(_ dir: URL) -> URL? {
+            for name in ["droidnative", "nxnative-android"] {
+                let url = dir.appending(path: name)
+                if fm.fileExists(atPath: url.path) { return url }
+            }
+            return nil
         }
-        return folder.appending(path: "nxnative-android").path
+        if let sourceRoot {
+            return (pick(sourceRoot) ?? pick(sourceRoot.deletingLastPathComponent())
+                ?? sourceRoot.deletingLastPathComponent().appending(path: "droidnative")).path
+        }
+        return (pick(folder) ?? folder.appending(path: "droidnative")).path
     }
 
     /// The Python environment nxnative's scripts run in.
@@ -51,7 +58,7 @@ public enum AppHome {
             ?? folder.appending(path: "venv", directoryHint: .isDirectory)
     }
 
-    /// Whether the Python environment has the packages this NX Play's uv.lock asks for: bin/setup keeps a copy of the
+    /// Whether the Python environment has the packages this DroidPlay's uv.lock asks for: bin/setup keeps a copy of the
     /// lock it last synced to in the environment, so an update that adds a package (zbic) asks for Setup once, rather
     /// than a build failing on the import.
     static var venvIsCurrent: Bool {

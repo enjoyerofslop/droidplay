@@ -2,7 +2,7 @@ import Foundation
 import Network
 import Observation
 
-/// The Macs on the local network running NX Play with the iPhone & iPad App setting on. They advertise `_nxplay._tcp` over
+/// The Macs on the local network running DroidPlay with the iPhone & iPad App setting on. They advertise `_nxplay._tcp` over
 /// Bonjour, with their `.local` host name and port in the TXT record (NXPlayKit's RemoteServer).
 @MainActor @Observable
 final class MacFinder {

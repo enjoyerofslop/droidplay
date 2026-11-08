@@ -1,6 +1,6 @@
 import Foundation
 
-/// Settings › Devices › Install NX Play: NX Play for iPhone and iPad, built from the source in NX Play's bundle
+/// Settings › Devices › Install DroidPlay: DroidPlay for iPhone and iPad, built from the source in DroidPlay's bundle
 /// (Resources/iOSApp, bin/install-ios with the iOS project) and signed with the team that signs the games.
 public struct IOSAppInstall: Sendable {
     public enum State: Sendable { case running, succeeded, failed }

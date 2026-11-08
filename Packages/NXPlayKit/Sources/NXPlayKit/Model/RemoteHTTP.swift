@@ -1,6 +1,6 @@
 import Foundation
 
-/// A request from the iPad app. NX Play's server reads only as much HTTP/1.1 as the app sends: the request line and
+/// A request from the iPad app. DroidPlay's server reads only as much HTTP/1.1 as the app sends: the request line and
 /// the headers. There's no body, since everything the API takes fits in the path and the query.
 struct RemoteRequest: Equatable, Sendable {
     let method: String

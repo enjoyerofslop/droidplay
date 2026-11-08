@@ -1,7 +1,7 @@
 import Foundation
 
 /// An Android device a game can be installed on through adb (Install on Android): connected, with USB debugging
-/// allowed for this Mac. nxnative-android's one app carries every game built on this Mac; `games` are the ones it
+/// allowed for this Mac. droidnative's one app carries every game built on this Mac; `games` are the ones it
 /// has on the device.
 public struct AndroidDevice: Hashable, Identifiable, Sendable {
     /// The serial adb takes (`adb -s`).
@@ -12,7 +12,7 @@ public struct AndroidDevice: Hashable, Identifiable, Sendable {
     /// The title IDs the app has on the device, uppercased: its `files/games/<title ID>` folders.
     public var games: Set<String> = []
 
-    /// nxnative-android's app, and where it keeps each game (build_android_from_nsp.py's PKG and REMOTE).
+    /// droidnative's app, and where it keeps each game (build_android_from_nsp.py's PKG and REMOTE).
     static let package = "org.nxnative.android"
     static let gamesFolder = "/sdcard/Android/data/\(package)/files/games"
 

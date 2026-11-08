@@ -25,25 +25,25 @@ import Testing
         return process.terminationStatus
     }
 
-    /// An ad-hoc signed "NX Play.app" of a version, in a DMG.
+    /// An ad-hoc signed "DroidPlay.app" of a version, in a DMG.
     private func dmg(version: String) throws -> URL {
-        let app = root.appending(path: "src/NX Play.app/Contents")
+        let app = root.appending(path: "src/DroidPlay.app/Contents")
         try FileManager.default.createDirectory(
             at: app.appending(path: "MacOS"), withIntermediateDirectories: true)
         let info: NSDictionary = [
-            "CFBundleIdentifier": "com.varyform.nxplay", "CFBundleShortVersionString": version,
-            "CFBundleExecutable": "NX Play",
+            "CFBundleIdentifier": "io.github.enjoyerofslop.droidplay", "CFBundleShortVersionString": version,
+            "CFBundleExecutable": "DroidPlay",
         ]
         info.write(to: app.appending(path: "Info.plist"), atomically: true)
         try FileManager.default.copyItem(
-            atPath: "/usr/bin/true", toPath: app.appending(path: "MacOS/NX Play").path)
+            atPath: "/usr/bin/true", toPath: app.appending(path: "MacOS/DroidPlay").path)
         try run(
             "/usr/bin/codesign", "--force", "--sign", "-",
-            root.appending(path: "src/NX Play.app").path)
+            root.appending(path: "src/DroidPlay.app").path)
         let dmg = root.appending(path: "NX-Play-\(version).dmg")
         #expect(
             try run(
-                "/usr/bin/hdiutil", "create", "-quiet", "-volname", "NX Play", "-srcfolder",
+                "/usr/bin/hdiutil", "create", "-quiet", "-volname", "DroidPlay", "-srcfolder",
                 root.appending(path: "src").path, "-format", "UDZO", dmg.path) == 0)
         return dmg
     }
@@ -85,32 +85,32 @@ import Testing
 
     @Test func stagesTheAppFromTheDMG() throws {
         let dmg = try dmg(version: "1.7")
-        let staged = root.appending(path: "staged/NX Play.app")
+        let staged = root.appending(path: "staged/DroidPlay.app")
         // ad hoc: no team (a release has its Developer ID team), not notarized
         try AppUpdater.stage(
-            dmg: dmg, to: staged, bundleID: "com.varyform.nxplay", teamID: "not set",
+            dmg: dmg, to: staged, bundleID: "io.github.enjoyerofslop.droidplay", teamID: "not set",
             version: "1.7", assess: false)
         #expect(
             FileManager.default.fileExists(
-                atPath: staged.appending(path: "Contents/MacOS/NX Play").path))
+                atPath: staged.appending(path: "Contents/MacOS/DroidPlay").path))
 
         #expect(throws: UpdateError.self) {
             try AppUpdater.stage(
-                dmg: dmg, to: staged, bundleID: "com.varyform.nxplay", teamID: "not set",
+                dmg: dmg, to: staged, bundleID: "io.github.enjoyerofslop.droidplay", teamID: "not set",
                 version: "1.8",
                 assess: false)
         }
         #expect(throws: UpdateError.self) {
             try AppUpdater.stage(
-                dmg: dmg, to: staged, bundleID: "com.varyform.nxplay", teamID: "535S292559",
+                dmg: dmg, to: staged, bundleID: "io.github.enjoyerofslop.droidplay", teamID: "535S292559",
                 version: "1.7",
                 assess: false)
         }
     }
 
     @Test func swapsTheAppOnceTheOldOneHasQuit() async throws {
-        let bundle = root.appending(path: "Applications/NX Play.app")
-        let staged = root.appending(path: "staged/NX Play.app")
+        let bundle = root.appending(path: "Applications/DroidPlay.app")
+        let staged = root.appending(path: "staged/DroidPlay.app")
         for (url, text) in [(bundle, "old"), (staged, "new")] {
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
             try Data(text.utf8).write(to: url.appending(path: "version"))
@@ -140,6 +140,6 @@ import Testing
         where (try? FileManager.default.contentsOfDirectory(atPath: folder))?.count != 1 {
             try await Task.sleep(for: .milliseconds(100))
         }
-        #expect(try FileManager.default.contentsOfDirectory(atPath: folder) == ["NX Play.app"])  // the old one is gone
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder) == ["DroidPlay.app"])  // the old one is gone
     }
 }

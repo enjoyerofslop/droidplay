@@ -6,7 +6,7 @@ import SystemConfiguration
 /// with devicectl, as Install on Device does. iOS doesn't let one app install another, so the Mac pushes the app.
 /// Every request carries the pairing code (`Authorization: Bearer <code>`).
 ///
-///     GET  /v1/info                      the Mac, NX Play's version, the team
+///     GET  /v1/info                      the Mac, DroidPlay's version, the team
 ///     GET  /v1/games                     the games, each with its running job
 ///     GET  /v1/games/<id>/icon           the game's artwork
 ///     GET  /v1/devices                   the devices an install can go to, looked for again
@@ -42,7 +42,7 @@ extension Library {
         }
         guard remoteServer == nil else { return }
         let server = RemoteServer { [weak self] request in
-            await self?.respond(to: request) ?? .error(503, "NX Play is quitting")
+            await self?.respond(to: request) ?? .error(503, "DroidPlay is quitting")
         }
         server.onProblem = { [weak self] problem in self?.remoteProblem = problem }
         remoteServer = server
@@ -51,7 +51,7 @@ extension Library {
 
     func respond(to request: RemoteRequest) async -> RemoteResponse {
         guard request.bearer == remoteToken else {
-            return .error(401, "Wrong pairing code: see NX Play › Settings › Devices on the Mac")
+            return .error(401, "Wrong pairing code: see DroidPlay › Settings › Devices on the Mac")
         }
         let route = request.route
         if route("GET", "v1/info") != nil {
@@ -80,7 +80,7 @@ extension Library {
             do {
                 let apps = try await DeviceCtl.games(on: device)
                 let removed = removedGames(on: udid, installed: apps.map(\.titleID))
-                // what's there now is remembered too: a game installed before NX Play kept track counts
+                // what's there now is remembered too: a game installed before DroidPlay kept track counts
                 remember(apps.map(\.titleID), on: udid)
                 return .json([
                     "apps": apps.map {

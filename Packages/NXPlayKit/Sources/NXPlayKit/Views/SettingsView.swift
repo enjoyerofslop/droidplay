@@ -31,7 +31,7 @@ public struct SettingsView: View {
 
 public enum SettingsTab: Hashable, Sendable { case general, games, saves, devices, updates }
 
-/// NX Play › Check for Updates…: checks now and shows the result in Settings › Updates.
+/// DroidPlay › Check for Updates…: checks now and shows the result in Settings › Updates.
 public struct CheckForUpdatesMenuItem: View {
     @Environment(Library.self) private var library
     @Environment(\.openSettings) private var openSettings
@@ -173,7 +173,7 @@ private struct SaveSettings: View {
                     prompt: "None")
             } footer: {
                 Footer(
-                    "A clone of your own private Git repository. While a game plays, NX Play copies its save into a folder named after it (the-game-name-<title ID>) once the game has saved, commits it and pushes, with your Git credentials. Empty: no backup."
+                    "A clone of your own private Git repository. While a game plays, DroidPlay copies its save into a folder named after it (the-game-name-<title ID>) once the game has saved, commits it and pushes, with your Git credentials. Empty: no backup."
                 )
             }
             CloudSavesSection()
@@ -272,7 +272,7 @@ private struct UpdatesTab: View {
             } footer: {
                 Footer(
                     library.updater.isEnabled
-                        ? "NX Play looks for a new release on GitHub at launch and once a day, and downloads it. It installs when you quit, or now with Restart to Update."
+                        ? "DroidPlay looks for a new release on GitHub at launch and once a day, and downloads it. It installs when you quit, or now with Restart to Update."
                         : "This copy was built from the source: update it with git pull and bin/install."
                 )
             }

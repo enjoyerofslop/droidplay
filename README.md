@@ -1,13 +1,16 @@
-# NX Play
+# DroidPlay
 
-**NX Play** is a Mac app (and `nxplay`, the script behind it) that runs Nintendo Switch games natively on a Mac or an iPhone/iPad, through [nxnative](https://github.com/seedds/nxnative). It builds a game once, then starts it straight away the next time. This repository is `nx-native-wrapper`.
+**DroidPlay** is a Mac app (and `nxplay`, the script behind it) that runs Nintendo Switch games natively on a Mac or an iPhone/iPad, through [nxnative](https://github.com/seedds/nxnative). It builds a game once, then starts it straight away the next time. This repository is `nx-native-wrapper`.
 
 - A library of your games with their icons: extract them, play them on the Mac, rebuild them.
 - Console Mode for the couch: full screen, driven by a game controller.
 - Install a game on your iPhone or iPad through Xcode, or build an IPA to sideload.
-- Install a game on an Android handheld or phone (an Ayn Odin 2, say) through adb, built with [nxnative-android](https://github.com/RogelioLB/nxnative-android), a fork of nxnative with an Android port.
+- Install a game on an Android handheld or phone (an Ayn Odin 2, say) through adb, built with [droidnative](https://github.com/enjoyerofslop/droidnative), a fork of nxnative with an Android port.
 - Copy saves between the Mac and a device, after seeing which one is newer, and back them up to your own private Git repository while you play.
 - Pull nxnative's latest fixes before a play and rebuild when they change something, after asking whether to update now or play the current build. Or keep a build that works as it is.
+
+DroidPlay is a fork of [NX Play](https://github.com/varyform/nx-native-wrapper) by Oleh Khomei, which stays focused on the Mac and Apple devices. DroidPlay adds Android
+and follows NX Play's changes, merged in from time to time. It installs beside NX Play: its own name, settings and folder.
 
 > You need your own games (NSP, NSZ, XCI or XCZ files, or a NUP file or dump of a Switch 2 game) and the `prod.keys` of your own Switch. Nothing here downloads games or keys.
 
@@ -16,7 +19,7 @@
 - [Why](#why)
 - [Requirements](#requirements)
 - [Install](#install), or [from the source](#from-the-source)
-- [Using NX Play](#using-nx-play): [the Game menu](#the-game-menu), [iPhone and iPad](#iphone-and-ipad), [Android](#android), [saves](#saves), [tools](#tools), [settings](#settings), [Console Mode](#console-mode)
+- [Using DroidPlay](#using-droidplay): [the Game menu](#the-game-menu), [iPhone and iPad](#iphone-and-ipad), [Android](#android), [saves](#saves), [tools](#tools), [settings](#settings), [Console Mode](#console-mode)
 - [Command line](#command-line)
 - [Controls](#controls)
 - [Troubleshooting](#troubleshooting)
@@ -27,13 +30,13 @@
 
 nxnative can pack a game into a standalone Mac app (`--platform mac-app`), with its own settings window. That's an app for one game.
 
-NX Play takes the other route: one app for all your games, everything portable and in one place.
+DroidPlay takes the other route: one app for all your games, everything portable and in one place.
 
 - Each game stays in its own folder: the original files, the build, the saves and the IPA side by side. Move the folder, or the whole library, and it keeps working.
 - Playing on the Mac, installing on an iPhone or iPad, moving saves and freeing space all happen from the same window.
 - Every game follows nxnative as it improves, with no per-game apps to rebuild and replace.
 
-![NX Play: a game being rebuilt, with nxplay's output below](docs/library.webp)
+![DroidPlay: a game being rebuilt, with nxplay's output below](docs/library.webp)
 
 ## Requirements
 
@@ -44,35 +47,35 @@ NX Play takes the other route: one app for all your games, everything portable a
 
 ## Install
 
-1. Download the DMG from the [latest release](https://github.com/varyform/nx-native-wrapper/releases/latest) and drag NX Play into Applications.
+1. Download the DMG from the [latest release](https://github.com/enjoyerofslop/droidplay/releases/latest) and drag DroidPlay into Applications. There is no signed release yet: until there is, build it [from the source](#from-the-source).
 2. Install [Homebrew](https://brew.sh) if you don't have it: one command in Terminal.
-3. Open NX Play. **Setup** opens by itself (later: NX Play › Setup…). It checks the Mac and Xcode and says what to fix. **Install Missing** then:
+3. Open DroidPlay. **Setup** opens by itself (later: DroidPlay › Setup…). It checks the Mac and Xcode and says what to fix. **Install Missing** then:
    - downloads Xcode's Metal Toolchain, which every build needs to compile the game's shaders;
    - installs the tools with Homebrew (uv, xcodegen, zstd, glslang, the .NET SDK), asking for your password for the .NET SDK;
    - installs Python and nxnative's packages with [uv](https://docs.astral.sh/uv/), leaving any other Python alone;
-   - clones nxnative.
+   - clones nxnative, and droidnative for Android.
 
-Everything except Homebrew's tools goes into one folder, `~/Library/Application Support/NX Play` (Setup's **Open Folder**).
+Everything except Homebrew's tools goes into one folder, `~/Library/Application Support/DroidPlay` (Setup's **Open Folder**).
 
-**NX Play › Uninstall NX Play…** removes it again: its folder, settings, caches and window state, its Dock icon if you kept it there, and the app, which goes to the Trash. It can also remove the Homebrew tools Setup installed. It leaves your games folder (the games, their builds and their saves), `prod.keys`, the save backup repository and Homebrew itself.
+**DroidPlay › Uninstall DroidPlay…** removes it again: its folder, settings, caches and window state, its Dock icon if you kept it there, and the app, which goes to the Trash. It can also remove the Homebrew tools Setup installed. It leaves your games folder (the games, their builds and their saves), `prod.keys`, the save backup repository and Homebrew itself.
 
-NX Play updates itself. It checks GitHub for a new release at launch and once a day (or now, with NX Play › Check for Updates…), and downloads it, verifying its checksum, signature and notarization. The update installs when you quit, or now with **Restart to Update**. **What's New** beside it lists what changed since your version; Help › NX Play Changelog has every release. NX Play never interrupts a game or a build to ask. A banner above the library, or a pill in Console Mode's top bar, says an update is ready. In Console Mode, Y (or U) shows what's new. If NX Play can't update itself because it runs from the DMG or from Downloads, the library asks you to move it into Applications.
+DroidPlay updates itself. It checks GitHub for a new release at launch and once a day (or now, with DroidPlay › Check for Updates…), and downloads it, verifying its checksum, signature and notarization. The update installs when you quit, or now with **Restart to Update**. **What's New** beside it lists what changed since your version; Help › DroidPlay Changelog has every release. DroidPlay never interrupts a game or a build to ask. A banner above the library, or a pill in Console Mode's top bar, says an update is ready. In Console Mode, Y (or U) shows what's new. If DroidPlay can't update itself because it runs from the DMG or from Downloads, the library asks you to move it into Applications.
 
 Put your keys in `~/.switch/prod.keys`, or choose the file in Settings.
 
 ### From the source
 
 ```sh
-git clone https://github.com/varyform/nx-native-wrapper.git
-cd nx-native-wrapper
+git clone https://github.com/enjoyerofslop/droidplay.git
+cd droidplay
 bin/setup
 ```
 
-`bin/setup` is the same script Setup runs, for a checkout: it also installs the tools in `mise.toml` if you use [mise](https://mise.jdx.dev), puts the Python packages into `.venv` and nxnative into `./nxnative` in the checkout, and builds NX Play into `/Applications`. A build from the checkout keeps using those. `bin/setup --check` reports what is missing without changing anything; `bin/setup --no-app` skips building the app.
+`bin/setup` is the same script Setup runs, for a checkout: it also installs the tools in `mise.toml` if you use [mise](https://mise.jdx.dev), puts the Python packages into `.venv` and nxnative into `./nxnative` in the checkout, and builds DroidPlay into `/Applications`. A build from the checkout keeps using those. `bin/setup --check` reports what is missing without changing anything; `bin/setup --no-app` skips building the app.
 
-## Using NX Play
+## Using DroidPlay
 
-Open NX Play and choose your games folder, with one subfolder per game:
+Open DroidPlay and choose your games folder, with one subfolder per game:
 
 ```
 Switch/
@@ -100,14 +103,14 @@ Right-click a game for more, or use the **Game** menu:
 
 - **Rebuild**: builds the game again with the current nxnative.
 - **Keep This Build**: for a game that plays well. nxnative updates no longer rebuild it, and a lock badge marks it. While it's kept, Install on Device, Build IPA and Make Mac App are off, since they'd rewrite files the kept build runs. Rebuild still replaces it.
-- **Game Settings…** (⌥⌘,): the settings nxnative offers for the game, with the defaults it was tested with. Depending on the game these include frame rate, render scale, docked or handheld, upscaling, language, window or full screen, rumble and performance switches. The basic ones come first; the rest are under Advanced settings. Each one follows Settings › Games until you change it for the game. A changed value is tinted and has its own reset button, and **Use Global Settings** resets them all. They apply the next time the game starts, and the log lists them. The game's Mac app shares the game's own values: NX Play keeps them where nxnative's own settings window does.
+- **Game Settings…** (⌥⌘,): the settings nxnative offers for the game, with the defaults it was tested with. Depending on the game these include frame rate, render scale, docked or handheld, upscaling, language, window or full screen, rumble and performance switches. The basic ones come first; the rest are under Advanced settings. Each one follows Settings › Games until you change it for the game. A changed value is tinted and has its own reset button, and **Use Global Settings** resets them all. They apply the next time the game starts, and the log lists them. The game's Mac app shares the game's own values: DroidPlay keeps them where nxnative's own settings window does.
 - **Install on Device**: builds the game with Xcode, signed with your team, then installs and starts it on a connected iPhone or iPad. The device must be paired with Xcode and in Developer Mode.
-- **Install on Android**: builds the game with nxnative-android in the game folder's `android` folder, then installs it and starts it on an Android device connected with USB debugging on. See [Android](#android).
+- **Install on Android**: builds the game with droidnative in the game folder's `android` folder, then installs it and starts it on an Android device connected with USB debugging on. See [Android](#android).
 - **Play on Android**: starts the game on a device that already has it, without building or copying anything.
 - **Build APK**: the same Android build without a device, exported with the game's files to install on any Android device. See [Android](#android).
 - **Build Game App** › **APK** or **XAPK**: the game as an Android app of its own, without the nxnative app, to install on any device. See [Android](#android).
 - **Build IPA**: an unsigned IPA in the game folder, for AltStore, Sideloadly and the like.
-- **Make Mac App**: a standalone, double-clickable app of the game (nxnative's `--platform mac-app`) in the game folder, for the Dock or Launchpad. It's made of APFS clones of the extracted files, so it takes almost no space on the same volume. Once a game has its app, **Play** starts the app, so the Dock shows the game's own name and icon, with the game's save and cheats from its folder and NX Play's settings. When an nxnative update rebuilds the game, the app is packed again with it, which adds a couple of minutes to the rebuild, so Play keeps starting the app. When that can't happen (the game files were removed, or the packing failed), Play uses the build: an orange **App** badge and Console Mode's "App out of date" say so, and **Update Mac App** in the Game menu packs it again. Opened from Finder or the Dock, the app plays on from the same save too: NX Play points it there through the app's `env.txt` in `~/Library/Application Support/nxnative/<title ID>`. The exception is an app that already has a save of its own from before. That one keeps it, and while the two saves differ, **Play** asks which one to use: NX Play's, the app's, or the newer one. **Don't ask again** keeps the answer for the game; **Ask Again** in Game Settings undoes it. The log names the save each play uses.
+- **Make Mac App**: a standalone, double-clickable app of the game (nxnative's `--platform mac-app`) in the game folder, for the Dock or Launchpad. It's made of APFS clones of the extracted files, so it takes almost no space on the same volume. Once a game has its app, **Play** starts the app, so the Dock shows the game's own name and icon, with the game's save and cheats from its folder and DroidPlay's settings. When an nxnative update rebuilds the game, the app is packed again with it, which adds a couple of minutes to the rebuild, so Play keeps starting the app. When that can't happen (the game files were removed, or the packing failed), Play uses the build: an orange **App** badge and Console Mode's "App out of date" say so, and **Update Mac App** in the Game menu packs it again. Opened from Finder or the Dock, the app plays on from the same save too: DroidPlay points it there through the app's `env.txt` in `~/Library/Application Support/nxnative/<title ID>`. The exception is an app that already has a save of its own from before. That one keeps it, and while the two saves differ, **Play** asks which one to use: DroidPlay's, the app's, or the newer one. **Don't ask again** keeps the answer for the game; **Ask Again** in Game Settings undoes it. The log names the save each play uses.
 - **Transfer Saves**: compares the Mac's save with a device's, file by file, and copies one over the other. The replaced save is kept in `<title ID>_build/run/save-backups`.
 - **nxnative Notes…** (⌥⌘I): what nxnative says about the game: tested, in bring-up, or no profile (a badge on the artwork says the same), and the profile's commits since your build (a blue badge counts them).
 - **Show in Finder**, **Open Save Folder**, **Open Cheats Folder**, **Open Build Logs**.
@@ -117,18 +120,18 @@ Right-click a game for more, or use the **Game** menu:
 
 ### iPhone and iPad
 
-**NX Play for iPhone and iPad** is a launcher for your phone or tablet, in `iOS/`. It lists the Mac's games, asks the Mac to install one, and plays the ones already installed. iOS doesn't let one app install another, so the Mac builds the game signed with your team and installs it over Wi-Fi, the way Install on Device does. Built with Xcode 27.2, it fills an iPhone Duo's screen and keeps the tiles on either side of the fold.
+**DroidPlay for iPhone and iPad** is a launcher for your phone or tablet, in `iOS/`. It lists the Mac's games, asks the Mac to install one, and plays the ones already installed. iOS doesn't let one app install another, so the Mac builds the game signed with your team and installs it over Wi-Fi, the way Install on Device does. Built with Xcode 27.2, it fills an iPhone Duo's screen and keeps the tiles on either side of the fold.
 
-![NX Play on an iPhone: its icon and the Mac it's connected to in the header, and the games installed on the phone as tiles with their versions](docs/ios.webp)
+![DroidPlay on an iPhone: its icon and the Mac it's connected to in the header, and the games installed on the phone as tiles with their versions](docs/ios.webp)
 
 To set it up:
 
 1. Pair the device with Xcode once (Window › Devices and Simulators) with **Connect via network** on, and turn on Developer Mode.
-2. On the Mac, turn on Settings › Devices › iPhone & iPad App. NX Play then shows up on the local network over Bonjour (`_nxplay._tcp`, port 47474) with a pairing code. **New Code** locks out devices that had the old one.
-3. Choose the device and click **Install NX Play** in the same section. NX Play builds the app from the source it carries and signs it with your team. From a checkout, `bin/install-ios <UDID>` does the same; `xcrun devicectl list devices` lists the UDIDs.
+2. On the Mac, turn on Settings › Devices › iPhone & iPad App. DroidPlay then shows up on the local network over Bonjour (`_nxplay._tcp`, port 47474) with a pairing code. **New Code** locks out devices that had the old one.
+3. Choose the device and click **Install DroidPlay** in the same section. DroidPlay builds the app from the source it carries and signs it with your team. From a checkout, `bin/install-ios <UDID>` does the same; `xcrun devicectl list devices` lists the UDIDs.
 4. On the device, pick the Mac, enter the code, and pick which of the Mac's devices this one is.
 
-<img src="docs/devices.webp" alt="Settings › Devices: the Apple team, and the iPhone & iPad App section with the Mac's address, the pairing code and Install NX Play" width="560">
+<img src="docs/devices.webp" alt="Settings › Devices: the Apple team, and the iPhone & iPad App section with the Mac's address, the pairing code and Install DroidPlay" width="560">
 
 The header shows which Mac the device is connected to. Games installed from now on open from the launcher: nxplay gives each one the URL scheme `nxplay-<title ID>`. A game installed before that needs **Reinstall from the Mac** once. The launcher asks the Mac what's on the device whenever it comes to the front, or when you pull down to refresh. A game deleted from the home screen then shows as **Removed from this iPhone** (or iPad), with a one-tap reinstall, because the Mac remembers which games each device has had. A connected controller works too:
 - the d-pad or left stick moves through the games
@@ -136,7 +139,7 @@ The header shows which Mac the device is connected to. Games installed from now 
 - **Y** installs it again
 - **B** goes back
 
-Games installed with a Personal Team stop opening after 7 days, and with a paid team after a year. The launcher shows how long each game has left. Within two days of expiry, a banner offers **Renew**, which installs those games again. NX Play itself expires the same way: install it again from Settings. Installs go over the cable when the device is plugged in, otherwise over Wi-Fi. The Mac has to be awake and NX Play open. The API is in `Library+Remote.swift`:
+Games installed with a Personal Team stop opening after 7 days, and with a paid team after a year. The launcher shows how long each game has left. Within two days of expiry, a banner offers **Renew**, which installs those games again. DroidPlay itself expires the same way: install it again from Settings. Installs go over the cable when the device is plugged in, otherwise over Wi-Fi. The Mac has to be awake and DroidPlay open. The API is in `Library+Remote.swift`:
 
 ```sh
 curl -H "Authorization: Bearer <code>" http://<mac>.local:47474/v1/games
@@ -145,20 +148,20 @@ curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/game
 
 ### Android
 
-**Install on Android** builds a game with [nxnative-android](https://github.com/RogelioLB/nxnative-android), a fork of nxnative that adds an Android port with a Vulkan renderer (seedds/nxnative itself stays Apple-only). It installs the game on an arm64 device over adb, then starts it there. It's experimental, as the fork is: a game's notes in nxnative don't cover Android, and some games run slower than on a Mac. The fork's own script does the work (`scripts/build_android_from_nsp.py`):
+**Install on Android** builds a game with [droidnative](https://github.com/enjoyerofslop/droidnative), a fork of nxnative that adds an Android port with a Vulkan renderer (seedds/nxnative itself stays Apple-only). It installs the game on an arm64 device over adb, then starts it there. It's experimental, as the fork is: a game's notes in nxnative don't cover Android, and some games run slower than on a Mac. The fork's own script does the work (`scripts/build_android_from_nsp.py`):
 
 - **One app holds every game.** The app is `org.nxnative.android`. Its launcher lists each game on the device, in `Android/data/org.nxnative.android/files/games/<title ID>`. Every APK carries the host of each game built on this Mac (kept in `~/.local/share/nxnative/android`), so installing a second game keeps the first. An install is an update, so the saves on the device stay. Don't uninstall the app: that would delete them.
-- **The build has a folder of its own:** `<game folder>/android`, with links to the game files (no space taken), plus the fork's `<title ID>_build`. The fork builds from older nxnative code, so it must neither reuse nor rewrite the Mac build. A kept build doesn't stop an Android install. NSP, NSZ, XCI and XCZ files work there, and so does a Switch 2 game's `.nup` with a checkout that reads one (the `android/upstream-sync` branch, which brings in upstream nxnative's Switch 2 support; NX Play says so otherwise). Dumps don't.
+- **The build has a folder of its own:** `<game folder>/android`, with links to the game files (no space taken), plus droidnative's `<title ID>_build`. droidnative follows nxnative but is a checkout of its own, at its own commit, so it never reuses or rewrites the Mac build. A kept build doesn't stop an Android install. NSP, NSZ, XCI and XCZ files work there, and so does a Switch 2 game's `.nup` (droidnative's `main` reads one; DroidPlay says so when an older checkout can't). Dumps don't.
 - **Each install runs the whole build again.** Steps whose inputs haven't changed are reused, so after an update of either checkout only what changed is rebuilt. The first build of a game takes as long as a Mac build. Later ones take a few minutes, mostly copying to the device.
-- **Play on Android** starts a game the device already has: NX Play asks the device which games its app holds. Settings › Devices › Android shows the devices adb sees.
-- **Build APK** is for a device this Mac can't reach, or a friend's. The APK alone isn't enough: the app reads each game from its own folder on the device, and has no import of its own. So NX Play exports both, to `<game folder>/android/<game name> (Android)`, and shows the folder in Finder:
+- **Play on Android** starts a game the device already has: DroidPlay asks the device which games its app holds. Settings › Devices › Android shows the devices adb sees.
+- **Build APK** is for a device this Mac can't reach, or a friend's. The APK alone isn't enough: the app reads each game from its own folder on the device, and has no import of its own. So DroidPlay exports both, to `<game folder>/android/<game name> (Android)`, and shows the folder in Finder:
   - `nxnative.apk`;
   - `games/<title ID>`, the game's folder exactly as an install leaves it on the device (APFS clones, so it takes no space on this Mac);
   - `How to install.txt`;
   - `install.sh`, which installs the app and copies the game over adb from any Mac or Linux computer.
 
   Without adb: install the APK, open the app once, then copy `games/<title ID>` into `Android/data/org.nxnative.android/files/games/` over USB file transfer. A device that has nxnative built on another computer refuses the APK, as it's signed with this Mac's key (`~/.android/nxnative-debug.jks`). Uninstalling that copy first deletes its games and saves.
-- **Build Game App** makes the game an app of its own: its own name and icon on the device, and its own saves. It opens straight into the game, with no nxnative app and no game drawer, so several games install side by side. It needs an nxnative-android checkout with the game-app mode (`build_android_from_nsp.py --game-apk`, on the `android/game-apk` branch for now); NX Play says so otherwise. Two kinds, which can sit side by side in the game's `android` folder:
+- **Build Game App** makes the game an app of its own: its own name and icon on the device, and its own saves. It opens straight into the game, with no nxnative app and no game drawer, so several games install side by side. It needs a droidnative checkout with the game-app mode (`build_android_from_nsp.py --game-apk`, in droidnative's `main`); DroidPlay says so otherwise. Two kinds, which can sit side by side in the game's `android` folder:
   - **APK**: `<game name>.apk`. A game whose data fits under 2 GB is one file. A bigger game also gets `<game name>.romfs`, its data (an APFS clone, so it takes no space): copy both to the device, put the `.romfs` anywhere, even on an SD card, and the app asks you to pick it once when it first opens. It reads the file where it is.
   - **XAPK**: `<game name>.xapk`, one file with the game data as the app's OBB data file, for an XAPK installer app on the device. It's a real copy of the game data, so it takes that much space on the Mac.
 
@@ -166,15 +169,15 @@ curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/game
 
 To set it up:
 
-1. Install the Android SDK (Android Studio, or its command-line tools) with an NDK, CMake 3.22 and build-tools 36, plus a JDK (`brew install openjdk@21` works). NX Play looks for the SDK in `ANDROID_HOME`, else `~/Library/Android/sdk`, and for a JDK through `java_home`, else Homebrew's openjdk.
-2. Clone nxnative-android: `git clone https://github.com/RogelioLB/nxnative-android ~/Library/Application\ Support/NX\ Play/nxnative-android`. To build with your own branch, clone your fork anywhere and point Settings › Devices › Android at it. Before each install, nxplay pulls the checkout's upstream; on a branch without one, it stays on that code.
+1. Install the Android SDK (Android Studio, or its command-line tools) with an NDK, CMake 3.22 and build-tools 36, plus a JDK (`brew install openjdk@21` works). DroidPlay looks for the SDK in `ANDROID_HOME`, else `~/Library/Android/sdk`, and for a JDK through `java_home`, else Homebrew's openjdk.
+2. Setup clones droidnative into `~/Library/Application Support/DroidPlay/droidnative` (`bin/setup`: `./droidnative` in the checkout), or clone it yourself: `git clone https://github.com/enjoyerofslop/droidnative`. To build with your own branch, clone your fork anywhere and point Settings › Devices › Android at it. Before each install, nxplay pulls the checkout's upstream; on a branch without one, it stays on that code.
 3. On the device, turn on Developer options › USB debugging, connect it, and allow this Mac.
 
 The build log is in `<game folder>/android/<title ID>_build/logs`, and the game's log on the device is `Android/data/org.nxnative.android/files/log.txt` (`adb logcat -s nxnative`).
 
 ### Saves
 
-**Save backup** (Settings › Saves): pick a clone of your own private Git repository. While a game plays, NX Play copies its save into a folder named after the game and its title ID (`the-legend-of-zelda-tears-of-the-kingdom-0100f2c0115b6000`) each time the game saves, then commits and pushes. It does this once more when the game quits. Pushing uses your own Git setup (SSH agent or keychain) and never prompts. The log shows each backup. Games started from the Terminal with `nxplay` aren't backed up.
+**Save backup** (Settings › Saves): pick a clone of your own private Git repository. While a game plays, DroidPlay copies its save into a folder named after the game and its title ID (`the-legend-of-zelda-tears-of-the-kingdom-0100f2c0115b6000`) each time the game saves, then commits and pushes. It does this once more when the game quits. Pushing uses your own Git setup (SSH agent or keychain) and never prompts. The log shows each backup. Games started from the Terminal with `nxplay` aren't backed up.
 
 **Cloud saves** (Settings › Saves): a game's Mac and iPhone copies play on from one save, through iCloud Drive (its nxnative Saves folder) or a folder you pick. This is nxnative's own sync: each game keeps one file there, `<title ID>/save.dmsync`. The game brings in the cloud's save when it starts and sends its own a few seconds after each save. On the iPhone, pick the same folder in the game app's Cloud saves. When both sides changed, the newer save wins and the other is kept in the save's backups. A save made in the last seconds before you quit goes up at the game's next start. From the Terminal: `DM_SAVE_SYNC=icloud nxplay <game folder>`.
 
@@ -194,7 +197,7 @@ Everything the game runs uses it (extract, play, rebuild, IPA, Mac app, device i
 
 ### Tools
 
-**Tools › Update All Builds…** builds every game with the current nxnative, one after another, so none of them makes you wait when you want to play. A build after an nxnative update can take from a few minutes to an hour, mostly the game's shaders. After an Xcode update every game recompiles them once. A game that's already current takes seconds. Kept builds and games without their game files are skipped. With **Only while plugged in**, the next build waits while the Mac is on battery. While a build runs, NX Play keeps the Mac awake (the display can sleep), so it can run overnight.
+**Tools › Update All Builds…** builds every game with the current nxnative, one after another, so none of them makes you wait when you want to play. A build after an nxnative update can take from a few minutes to an hour, mostly the game's shaders. After an Xcode update every game recompiles them once. A game that's already current takes seconds. Kept builds and games without their game files are skipped. With **Only while plugged in**, the next build waits while the Mac is on battery. While a build runs, DroidPlay keeps the Mac awake (the display can sleep), so it can run overnight.
 
 **Tools › Free Up Space** lists, per game and with their sizes, what you can delete:
 
@@ -212,7 +215,7 @@ Pick files one by one, a whole game, or a whole kind. Nothing is selected until 
 
 Settings has a tab for each subject: **General** (the games folder, the keys file, the nxnative folder, the Metal compiler check, Setup), **Games** (the settings every game gets unless it has its own, and the controllers), **Saves** (the backup repository, cloud saves), **Devices** (the Apple team for device installs, the [iPhone & iPad app](#iphone-and-ipad), and the [Android](#android) checkout and devices) and **Updates**. **Game Controls** (in the menu bar, and the keyboard button in the toolbar) shows the keyboard controls. While builds run, the Dock icon shows their progress.
 
-<img src="docs/settings.webp" alt="NX Play's Settings" width="560">
+<img src="docs/settings.webp" alt="DroidPlay's Settings" width="560">
 
 ### Console Mode
 
@@ -235,7 +238,7 @@ Down (or a click on the game's name) opens the game's details: the banner and th
 ./nxplay --ipa ~/Games/MetroidDread        # build the iOS IPA into the game folder, to sideload
 ./nxplay --mac-app ~/Games/MetroidDread    # pack a standalone Mac app of the game into its folder
 ./nxplay --device <udid> ~/Games/MetroidDread --team-id <team>   # build with Xcode, install and start on a device
-./nxplay --android <serial> ~/Games/MetroidDread   # build with nxnative-android, install and start on an Android device
+./nxplay --android <serial> ~/Games/MetroidDread   # build with droidnative, install and start on an Android device
 ./nxplay --apk ~/Games/MetroidDread       # build for Android and export the app with the game's files, to install anywhere
 ./nxplay --game-apk ~/Games/MetroidDread  # the game as an Android app of its own (and its .romfs when it's over 2 GB)
 ./nxplay --game-xapk ~/Games/MetroidDread # the same app as one .xapk, for an XAPK installer
@@ -250,11 +253,11 @@ DM_FPS_TARGET=30 ./nxplay ~/Games/MetroidDread   # any of the game's settings, f
 
 `xcrun devicectl list devices` lists the device UDIDs, and `adb devices` the Android serials.
 
-Each run starts by updating nxnative and lists any new commits. A game is rebuilt when its Mac build was made with other nxnative code than the checkout has now, whichever run pulled the update. A kept build is the exception: NX Play's Keep This Build puts a `keep` file in `<title ID>_build`, and that build then plays as it is until an explicit `--rebuild`, while `--ipa`, `--mac-app` and `--device` refuse to run for it. Before a play, `NXPLAY_UPDATE` decides what happens to a game built with older code: `update` (the default) pulls and rebuilds, `current` plays the build as it is and leaves the checkout alone, and `ask` first shows what the update brings (the commit count, the game's own commits, whether every shader is translated again, how long the last update took) and asks. NX Play asks by default; Settings › General changes it. The `./nxnative` clone is only for following upstream: when upstream rewrites its history, nxplay follows it, so keep your own nxnative changes in another clone (`NXNATIVE=/path/to/it`).
+Each run starts by updating nxnative and lists any new commits. A game is rebuilt when its Mac build was made with other nxnative code than the checkout has now, whichever run pulled the update. A kept build is the exception: DroidPlay's Keep This Build puts a `keep` file in `<title ID>_build`, and that build then plays as it is until an explicit `--rebuild`, while `--ipa`, `--mac-app` and `--device` refuse to run for it. Before a play, `NXPLAY_UPDATE` decides what happens to a game built with older code: `update` (the default) pulls and rebuilds, `current` plays the build as it is and leaves the checkout alone, and `ask` first shows what the update brings (the commit count, the game's own commits, whether every shader is translated again, how long the last update took) and asks. DroidPlay asks by default; Settings › General changes it. The `./nxnative` clone is only for following upstream: when upstream rewrites its history, nxplay follows it, so keep your own nxnative changes in another clone (`NXNATIVE=/path/to/it`).
 
 The run command is saved in `<game folder>/<title ID>_build/start_mac.sh`. It holds absolute paths, so after you move a game folder (or nxnative), the next run rewrites them to the new location.
 
-Environment variables: `NXNATIVE` (the nxnative checkout; default `./nxnative`, else `../nxnative`), `NXNATIVE_ANDROID` (the nxnative-android checkout `--android` builds with; default `./nxnative-android`, else `../nxnative-android`), `ANDROID_HOME` (the Android SDK; default `~/Library/Android/sdk`), `NX_KEYS` (default `~/.switch/prod.keys`), `NXPLAY_VENV` (default `./.venv`).
+Environment variables: `NXNATIVE` (the nxnative checkout; default `./nxnative`, else `../nxnative`), `NXNATIVE_ANDROID` (the droidnative checkout `--android` builds with; default `./droidnative`, else `../droidnative`), `ANDROID_HOME` (the Android SDK; default `~/Library/Android/sdk`), `NX_KEYS` (default `~/.switch/prod.keys`), `NXPLAY_VENV` (default `./.venv`).
 
 ## Controls
 
@@ -278,10 +281,10 @@ Controllers are detected automatically, with buttons by position (right A, botto
 
 ### Where to report a problem
 
-NX Play builds and runs games with [nxnative](https://github.com/seedds/nxnative). It doesn't touch the games themselves, so most game problems belong there:
+DroidPlay builds and runs games with [nxnative](https://github.com/seedds/nxnative). It doesn't touch the games themselves, so most game problems belong there:
 
 - **Report to [nxnative's issues](https://github.com/seedds/nxnative/issues):** a game that crashes, freezes, shows a black screen or glitches. Also a game that doesn't boot on the Mac or on an iPhone or iPad, and a build or IPA that fails in one of nxnative's steps (extract, rewrite, shader split, shaders, Mac host, Xcode project). Search first: the game may be known, or not supported yet. Include the game's title ID and version, your Mac or device, and the step's log from **Open Build Logs**.
-- **Report [here](https://github.com/varyform/nx-native-wrapper/issues):** NX Play's own windows and buttons, Setup, updates, Install on Device, Transfer Saves, Save backup, Console Mode and the controller, Free Up Space, and `nxplay` itself.
+- **Report [here](https://github.com/enjoyerofslop/droidplay/issues):** DroidPlay's own windows and buttons, Setup, updates, Install on Device, Transfer Saves, Save backup, Console Mode and the controller, Free Up Space, and `nxplay` itself.
 
 Not sure? Run nxnative's build script on the game yourself (`python3 scripts/build_ipa_from_nsp.py <game folder> -k ~/.switch/prod.keys` in the nxnative folder; `--platform mac` for the Mac). If it fails the same way, it's nxnative's.
 
@@ -296,7 +299,7 @@ Not sure? Run nxnative's build script on the game yourself (`python3 scripts/bui
 ## Development
 
 ```sh
-bin/build        # build/Build/Products/Release/NX Play.app
+bin/build        # build/Build/Products/Release/DroidPlay.app
 bin/install      # build and install into /Applications (or: bin/install ~/Applications)
 mise run app     # build and open it
 mise run test    # NXPlayKit tests (swift test --package-path Packages/NXPlayKit)
@@ -305,9 +308,9 @@ bin/release 1.7.12 "Stair Climber"  # release (the name is optional): sign, nota
 
 `bin/release` needs a Developer ID Application certificate and a notarytool profile (`xcrun notarytool store-credentials nxplay-notary`). It moves the changelog's Unreleased notes under the new version and bumps the version in `project.yml`. It builds with the hardened runtime and without the checkout's paths, so the release keeps everything in its own folder. The app and the DMG are notarized and stapled. Nothing is committed, pushed or published until you confirm, and the DMG stays in `build/release`. Released apps update from the latest GitHub release's DMG, using the SHA-256 digest GitHub records for each uploaded asset.
 
-A checkout build doesn't update itself. To see the update notices anyway, open it with `open -a "NX Play" --args -NXPlayPreviewUpdate ready` (or `waiting` for the reminder after a few days, or `problem` for the move-into-Applications banner). It fakes an update with the changelog's Unreleased notes. Restart to Update then only quits, and released apps ignore the argument.
+A checkout build doesn't update itself. To see the update notices anyway, open it with `open -a "DroidPlay" --args -NXPlayPreviewUpdate ready` (or `waiting` for the reminder after a few days, or `problem` for the move-into-Applications banner). It fakes an update with the changelog's Unreleased notes. Restart to Update then only quits, and released apps ignore the argument.
 
-When NX Play is running, `bin/install` asks it to quit once no game, build or file work is running, waits for that, replaces it and opens it again.
+When DroidPlay is running, `bin/install` asks it to quit once no game, build or file work is running, waits for that, replaces it and opens it again.
 
 To work in Xcode, run `xcodegen generate` (or `mise run generate`) and open `NXPlay.xcodeproj`. The code lives in the `Packages/NXPlayKit` Swift package; `project.yml` describes the app.
 

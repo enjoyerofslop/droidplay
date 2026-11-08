@@ -62,7 +62,7 @@ public final class Library {
     }
     public var nxnativePath: String { didSet { defaults.set(nxnativePath, forKey: Keys.nxnative) } }
     public var keysPath: String { didSet { defaults.set(keysPath, forKey: Keys.keys) } }
-    /// The nxnative-android checkout Install on Android builds with (Library+Android.swift).
+    /// The droidnative checkout Install on Android builds with (Library+Android.swift).
     public var nxnativeAndroidPath: String {
         didSet { defaults.set(nxnativeAndroidPath, forKey: Keys.nxnativeAndroid) }
     }
@@ -135,7 +135,7 @@ public final class Library {
     /// Why the iOS app's server isn't listening.
     public internal(set) var remoteProblem: String?
     @ObservationIgnored var remoteServer: RemoteServer?
-    /// Install NX Play's run, while it goes and after (Library+IOSApp.swift).
+    /// Install DroidPlay's run, while it goes and after (Library+IOSApp.swift).
     public internal(set) var iosAppInstall: IOSAppInstall?
 
     public private(set) var games: [Game] = []
@@ -144,7 +144,7 @@ public final class Library {
     public var problem: String?
     /// The save transfer sheet, when open.
     public var transfer: SaveTransfer?
-    /// A play waiting for the player to choose between NX Play's save and the Mac app's own (Library+AppSave.swift).
+    /// A play waiting for the player to choose between DroidPlay's save and the Mac app's own (Library+AppSave.swift).
     public var saveQuestion: SaveQuestion?
     /// A play whose nxplay asks whether to update nxnative first (Library+UpdateAsk.swift).
     public var updatePrompt: UpdatePrompt?
@@ -160,7 +160,7 @@ public final class Library {
     public var consoleMode = false {
         // the carousel starts at the game played last
         didSet {
-            // NX Play opens in the mode it was left in
+            // DroidPlay opens in the mode it was left in
             defaults.set(consoleMode, forKey: Keys.consoleMode)
             if consoleMode, !oldValue {
                 selection = navigableGames.first?.id
@@ -220,7 +220,7 @@ public final class Library {
     @ObservationIgnored private var terminationObserver: (any NSObjectProtocol)?
     @ObservationIgnored private let saveBackup = SaveBackup()
     @ObservationIgnored private var installObservers: [any NSObjectProtocol] = []
-    /// bin/install asked NX Play to quit once nothing is running, to replace it (quitWhenIdleNotification).
+    /// bin/install asked DroidPlay to quit once nothing is running, to replace it (quitWhenIdleNotification).
     public private(set) var quitsWhenIdle = false
     /// File work outside the jobs that quitting would cut short: Free Up Space deleting, a save transfer copying.
     @ObservationIgnored private var tasksInFlight = 0
@@ -597,7 +597,7 @@ public final class Library {
         do {
             if kept {
                 try Data(
-                    "Kept by NX Play: nxnative updates don't rebuild this build; Rebuild does.\n"
+                    "Kept by DroidPlay: nxnative updates don't rebuild this build; Rebuild does.\n"
                         .utf8
                 )
                 .write(to: file)
@@ -610,7 +610,7 @@ public final class Library {
         refresh()
     }
 
-    /// Opens the save transfer for a game; the copy NX Play installs is preferred when a device has several.
+    /// Opens the save transfer for a game; the copy DroidPlay installs is preferred when a device has several.
     public func transferSaves(_ game: Game) {
         refreshDevices()
         var bundleID: String?
@@ -820,7 +820,7 @@ public final class Library {
         if case .failed = job.status {
             showsLog = true
             selection = job.game.id
-            // in the background: a badge on the Dock icon until NX Play is opened again
+            // in the background: a badge on the Dock icon until DroidPlay is opened again
             if !isScreenshot, NSApp?.isActive == false { NSApp.dockTile.badgeLabel = "!" }
             if !allowOtherMetal,
                 job.log.lines.contains(where: { $0.text.contains(Self.otherMetalMarker) })
@@ -862,9 +862,9 @@ public final class Library {
 
     /// Posted by bin/install: quit as soon as no game, build or file work is running, so the app can be replaced
     /// without cutting anything short. Answered from inside the app, so nothing can start between the check and the quit.
-    static let quitWhenIdleNotification = Notification.Name("com.varyform.nxplay.quitWhenIdle")
+    static let quitWhenIdleNotification = Notification.Name("io.github.enjoyerofslop.droidplay.quitWhenIdle")
     /// Posted by bin/install when it is cancelled while waiting.
-    static let stayOpenNotification = Notification.Name("com.varyform.nxplay.stayOpen")
+    static let stayOpenNotification = Notification.Name("io.github.enjoyerofslop.droidplay.stayOpen")
 
     /// Nothing running that quitting would stop: no job (queued or running) and no file work in flight.
     public var isIdle: Bool {
@@ -879,7 +879,7 @@ public final class Library {
         quitIfIdle()
     }
 
-    /// Installs the staged update now: NX Play quits once no game, build or file work runs, and opens again.
+    /// Installs the staged update now: DroidPlay quits once no game, build or file work runs, and opens again.
     public func restartToUpdate() {
         guard case .ready = updater.state else { return }
         updater.relaunchAfterUpdate()
@@ -923,7 +923,7 @@ public final class Library {
             problem = "The nxplay script is missing from the app bundle."
             return nil
         }
-        // Install on Android and Build APK build with nxnative-android's checkout instead (androidCommand)
+        // Install on Android and Build APK build with droidnative's checkout instead (androidCommand)
         guard kind.buildsForAndroid || fm.fileExists(atPath: repo + "/scripts/build_ipa_from_nsp.py") else {
             problem =
                 "No nxnative checkout at \(repo). Open Setup to install it, or set its folder in Settings."

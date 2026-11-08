@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Finds the Macs running NX Play over Bonjour (or takes an address) and pairs with the code NX Play shows in
+/// Finds the Macs running DroidPlay over Bonjour (or takes an address) and pairs with the code DroidPlay shows in
 /// Settings › Devices › iPhone & iPad App.
 struct PairView: View {
     @Environment(Launcher.self) private var launcher
@@ -16,7 +16,7 @@ struct PairView: View {
             Form {
                 Section {
                     if finder.found.isEmpty {
-                        Label("Looking for NX Play on this network…", systemImage: "wifi")
+                        Label("Looking for DroidPlay on this network…", systemImage: "wifi")
                             .foregroundStyle(.secondary)
                     }
                     ForEach(finder.found) { mac in
@@ -36,7 +36,7 @@ struct PairView: View {
                     Text("Macs")
                 } footer: {
                     Text(
-                        "On the Mac: NX Play › Settings › Devices › iPhone & iPad App, with \u{201C}Let iPhones and iPads install games from this Mac\u{201D} on."
+                        "On the Mac: DroidPlay › Settings › Devices › iPhone & iPad App, with \u{201C}Let iPhones and iPads install games from this Mac\u{201D} on."
                     )
                 }
                 Section("Or by address") {

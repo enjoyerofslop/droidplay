@@ -1,6 +1,6 @@
 import Foundation
 
-/// Game settings in two layers: global values for every game that offers them (Settings › Games, kept in NX Play) and
+/// Game settings in two layers: global values for every game that offers them (Settings › Games, kept in DroidPlay) and
 /// a game's own over them (Game › Game Settings…, kept in nxnative's store, which the game's Mac app shares). A play
 /// passes the result in the game's environment. Each game's list comes from nxplay (nxplay-settings.json).
 extension Library {
@@ -17,7 +17,7 @@ extension Library {
         return choices(for: game)?.value(for: setting)
     }
 
-    /// The global value this game gets, nil when there's none it offers. The language follows NX Play's rule: the same
+    /// The global value this game gets, nil when there's none it offers. The language follows DroidPlay's rule: the same
     /// language for another region when the game lacks the one asked for.
     public func globalValue(_ setting: LauncherSetting, for game: Game) -> String? {
         guard let value = globalChoices[setting.env] else { return nil }
@@ -70,7 +70,7 @@ extension Library {
     // MARK: - Settings › Games
 
     /// One row per setting the games' lists have, the first game's row with the options of all of them; the language
-    /// lists every language NX Play knows. Language, display mode and the HUD are there before any game has a list.
+    /// lists every language DroidPlay knows. Language, display mode and the HUD are there before any game has a list.
     public var globalSettings: [LauncherSetting] {
         var rows: [LauncherSetting] = []
         for setting in games.compactMap({ settingsLists[$0.id] }).flatMap(\.settings) {
@@ -120,7 +120,7 @@ extension Library {
             defaultValue: a.defaultValue, isBasic: a.isBasic, needs: a.needs)
     }
 
-    /// Language, display mode and the HUD, as nxnative's settings.tsv words them: NX Play's settings before the lists.
+    /// Language, display mode and the HUD, as nxnative's settings.tsv words them: DroidPlay's settings before the lists.
     static let fallbackSettings: [LauncherSetting] = [
         LauncherSetting(
             env: "DM_LANG", kind: .choice([]), section: "Game", label: "Game language", note: "",
@@ -137,7 +137,7 @@ extension Library {
             label: "Performance HUD", note: "", defaultValue: "0", isBasic: false, needs: nil),
     ]
 
-    /// The global values as saved; the first time, the three settings NX Play had before become global values.
+    /// The global values as saved; the first time, the three settings DroidPlay had before become global values.
     static func loadGlobalChoices(_ defaults: UserDefaults) -> [String: String] {
         if let global = defaults.dictionary(forKey: Keys.globalSettings) as? [String: String] {
             return global

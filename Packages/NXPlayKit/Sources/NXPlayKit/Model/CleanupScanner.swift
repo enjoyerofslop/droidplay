@@ -213,7 +213,7 @@ final class SizeCache: @unchecked Sendable {
 
     static var defaultFile: URL {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appending(path: "com.varyform.nxplay/sizes.json")
+            .appending(path: "io.github.enjoyerofslop.droidplay/sizes.json")
     }
 
     func size(of url: URL, stamp: Double) -> Int64? {

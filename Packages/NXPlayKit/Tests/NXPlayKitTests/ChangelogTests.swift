@@ -7,7 +7,7 @@ struct ChangelogTests {
     static let file = """
         # Changelog
 
-        User-visible changes to NX Play.
+        User-visible changes to DroidPlay.
 
         ## Unreleased
 

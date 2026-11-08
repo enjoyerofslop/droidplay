@@ -18,7 +18,7 @@ public enum DeviceCtl {
     }
 
     /// The copies of a game on a device: nxnative names its bundle IDs after the title ID
-    /// (org.nxnative.<title ID>, or with the team in it when installed from NX Play).
+    /// (org.nxnative.<title ID>, or with the team in it when installed from DroidPlay).
     public static func apps(on device: Device, titleID: String) async throws -> [DeviceApp] {
         parseApps(
             try await run(["device", "info", "apps", "--device", device.id]), titleID: titleID)

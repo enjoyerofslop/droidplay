@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Settings › Devices › iPhone & iPad App: NX Play on an iPhone or iPad lists the games and asks this Mac to install
-/// them there (Library+Remote.swift); Install NX Play puts the app itself there (Library+IOSApp.swift).
+/// Settings › Devices › iPhone & iPad App: DroidPlay on an iPhone or iPad lists the games and asks this Mac to install
+/// them there (Library+Remote.swift); Install DroidPlay puts the app itself there (Library+IOSApp.swift).
 struct RemoteSettingsSection: View {
     @Environment(Library.self) private var library
     @State private var deviceID = ""
@@ -31,7 +31,7 @@ struct RemoteSettingsSection: View {
             Text("iPhone & iPad App")
         } footer: {
             Text(
-                "NX Play on an iPhone or iPad finds this Mac on the local network, lists the games and asks for one: the Mac builds it, signed with the team above, and installs it over Wi-Fi or the cable. Pair the device with Xcode once, with Connect via network on, and keep the Mac awake. Install NX Play puts the app itself on the device, and renews it before it expires. A new code locks out devices that had the old one."
+                "DroidPlay on an iPhone or iPad finds this Mac on the local network, lists the games and asks for one: the Mac builds it, signed with the team above, and installs it over Wi-Fi or the cable. Pair the device with Xcode once, with Connect via network on, and keep the Mac awake. Install DroidPlay puts the app itself on the device, and renews it before it expires. A new code locks out devices that had the old one."
             )
             .font(.caption).foregroundStyle(.secondary)
         }
@@ -46,7 +46,7 @@ struct RemoteSettingsSection: View {
                 ForEach(devices) { Text($0.name).tag($0.id) }
             }
             .disabled(running)
-            Button("Install NX Play") {
+            Button("Install DroidPlay") {
                 if let device = devices.first(where: { $0.id == deviceID }) {
                     library.installIOSApp(on: device)
                 }
@@ -71,7 +71,7 @@ struct RemoteSettingsSection: View {
         }
     }
 
-    /// The device NX Play last went to (renewing it is the usual reason to come back), else the first one.
+    /// The device DroidPlay last went to (renewing it is the usual reason to come back), else the first one.
     private func pickDevice() {
         guard !library.devices.contains(where: { $0.id == deviceID }) else { return }
         let last = library.iosAppInstall?.device.id

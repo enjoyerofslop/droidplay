@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// Not macOS full screen: that puts the window on a Space of its own, and a game, which opens its own full-screen
 /// Space from the desktop, hands the screen back to the desktop when it quits. macOS then brings forward the last app
-/// used there (not NX Play, which wasn't there), and NX Play can't take the screen back: activation is cooperative
+/// used there (not DroidPlay, which wasn't there), and DroidPlay can't take the screen back: activation is cooperative
 /// since macOS 14. A window covering the desktop is the last app used there, so a quitting game returns to it.
 /// The menu bar and the Dock come back by themselves while another app is in front.
 struct ConsoleWindowController: NSViewRepresentable {
@@ -15,7 +15,7 @@ struct ConsoleWindowController: NSViewRepresentable {
     @MainActor final class Coordinator {
         /// How the window was before Console Mode; nil while it is not covering.
         var saved: Saved?
-        /// Console Mode as last asked: NX Play opened in it has no window yet at the first update.
+        /// Console Mode as last asked: DroidPlay opened in it has no window yet at the first update.
         var wanted = false
         var terminationObserver: (any NSObjectProtocol)?
         /// Waiting for the player's macOS full screen to end before covering.
@@ -117,7 +117,7 @@ struct ConsoleWindowController: NSViewRepresentable {
         }
     }
 
-    /// Covers the screen once the view is in its window, for NX Play opened in Console Mode.
+    /// Covers the screen once the view is in its window, for DroidPlay opened in Console Mode.
     final class WindowView: NSView {
         let coordinator: Coordinator
 
