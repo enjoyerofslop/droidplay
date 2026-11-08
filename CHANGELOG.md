@@ -4,6 +4,8 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 
 ## Unreleased
 
+## 0.1.1 — 2026-11-08
+
 ### Fixed
 
 - **Setup clones droidnative into DroidPlay's folder** (`~/Library/Application Support/DroidPlay/droidnative`), where Install on Android looks for it. 0.1.0 cloned it inside the app instead, so Install on Android said there was no droidnative checkout and the app's signature no longer matched its files. After updating, run Setup again; the copy inside the old app goes with it.
