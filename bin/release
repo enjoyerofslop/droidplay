@@ -31,12 +31,20 @@ dmg="$out/$app_name-$version.dmg"
 say() { printf '\n\e[1m%s\e[0m\n' "$1"; }
 die() { echo "bin/release: $1" >&2; exit 1; }
 
+# The GitHub repository the release goes to: origin's, named to every gh call. gh left to itself picks a remote named upstream before origin, and
+# a fork's upstream is the project it came from: DroidPlay's first release run asked varyform/nx-native-wrapper for its notes and then to create
+# the release there, which only the tag's absence there stopped
+repo="$(git remote get-url origin | sed -E 's#^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)##; s#\.git$##')"
+[[ "$repo" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] || die "origin is not a GitHub repository: $(git remote get-url origin)"
+
 # Thanks first-time contributors on the release page: GitHub works out who, from the pull requests since the last tag.
 # The changelog stays about the app, so only the release's notes get this. "###" like the notes' other headings: the
 # app's What's New can fall back on these notes, and a "##" there would drop everything above it.
 new_contributors() {
-  gh api -X POST 'repos/{owner}/{repo}/releases/generate-notes' \
-    -f tag_name="v$version" -f target_commitish=main -f previous_tag_name="$(git describe --tags --abbrev=0)" --jq .body \
+  local prev args=(-f tag_name="v$version" -f target_commitish=main)
+  prev="$(git describe --tags --abbrev=0 2> /dev/null || true)"   # the newest tag here; only one origin has (not a fork's upstream's) bounds the notes
+  if [[ -n "$prev" ]] && git ls-remote --exit-code --tags origin "refs/tags/$prev" > /dev/null 2>&1; then args+=(-f previous_tag_name="$prev"); fi
+  gh api -X POST "repos/$repo/releases/generate-notes" "${args[@]}" --jq .body \
     | tr -d '\r' | sed -n '/^## New Contributors/,/^$/p' | sed -E 's/^## /### /; s/^\* /- /'
 }
 
@@ -52,14 +60,14 @@ notes="$(awk '/^## Unreleased/ { f = 1; next } /^## / { exit } f' CHANGELOG.md |
 [[ -n "$notes" ]] || die "nothing under '## Unreleased' in CHANGELOG.md"
 if (( unsigned )); then
   identity="-"; team=""   # ad-hoc: Apple silicon runs nothing without at least that signature
-  echo "  version $label, ad-hoc signed, not notarized: a pre-release"
+  echo "  version $label, ad-hoc signed, not notarized: a pre-release in $repo"
 else
   identity="$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)"
   [[ -n "$identity" ]] || die "no Developer ID Application certificate in the keychain (bin/release --unsigned makes a pre-release without one)"
   team="$(sed -n 's/.*(\([A-Z0-9]*\))$/\1/p' <<< "$identity")"
   xcrun notarytool history --keychain-profile "$profile" > /dev/null 2>&1 \
     || die "no notarytool profile '$profile': xcrun notarytool store-credentials $profile --apple-id <Apple ID> --team-id $team"
-  echo "  version $label, signed by $identity, notarized with profile $profile"
+  echo "  version $label, signed by $identity, notarized with profile $profile, released in $repo"
 fi
 
 # from here on, any exit before publishing (a failed step, die, Ctrl-C) puts project.yml and CHANGELOG.md back
@@ -144,7 +152,7 @@ if (( unsigned )); then
   notes+="SHA-256 of \`$(basename "$dmg")\`: \`$(cut -d' ' -f1 "$dmg.sha256")\`"
 fi
 printf '  %s\n' "${notes//$'\n'/$'\n  '}"
-read -r -p $'\nCommit, tag and publish DroidPlay '"$label"$' to GitHub? [y/N] ' answer
+read -r -p $'\nCommit, tag and publish DroidPlay '"$label"$' to '"$repo"$'? [y/N] ' answer
 if [[ "$answer" != [yY] ]]; then
   restore
   finished=1
@@ -157,8 +165,8 @@ git commit -q -m "Release $label [skip ci]"
 git tag -a "v$version" -m "DroidPlay $label"
 git push -q origin main "v$version"
 if (( unsigned )); then
-  gh release create "v$version" "$dmg" "$dmg.sha256" --prerelease --title "DroidPlay $label (pre-release, unsigned)" --notes "$notes"
+  gh release create "v$version" "$dmg" "$dmg.sha256" -R "$repo" --prerelease --title "DroidPlay $label (pre-release, unsigned)" --notes "$notes"
 else
-  gh release create "v$version" "$dmg" --title "DroidPlay $label" --notes "$notes"
+  gh release create "v$version" "$dmg" -R "$repo" --title "DroidPlay $label" --notes "$notes"
 fi
 echo "released: v$version${name:+ ($name)}"
