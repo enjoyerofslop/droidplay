@@ -352,6 +352,9 @@ public final class Library {
         // the bundled setup reads the files bundled beside it, for a checkout build too
         if let project = AppHome.setupProject { env["NXPLAY_PROJECT"] = project.path }
         if AppHome.sourceRoot == nil { env["NXPLAY_HOME"] = AppHome.folder.path }
+        // where Setup clones droidnative: the folder Install on Android builds with. Without it bin/setup took a folder
+        // relative to its own, the app bundle's Setup, and 0.1.0 cloned droidnative into the app
+        env["NXNATIVE_ANDROID"] = nxnativeAndroidRepo
         if let askpass = AppHome.setupProject?.appending(path: "askpass") {
             env["SUDO_ASKPASS"] = askpass.path
         }

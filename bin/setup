@@ -135,12 +135,13 @@ fi
 # warns; a checkout set up before the rename keeps its nxnative-android folder
 section "droidnative"
 if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then arepo="$NXNATIVE_ANDROID"
+elif (( app_run )); then arepo="$NXPLAY_HOME/droidnative"   # never beside this script: run from the app, that is inside the app bundle
 elif [[ -d droidnative ]]; then arepo="droidnative"
 elif [[ -d nxnative-android ]]; then arepo="nxnative-android"
 elif [[ -d ../droidnative ]]; then arepo="../droidnative"
 else arepo="droidnative"; fi
 if [[ ! -f "$arepo/scripts/build_android_from_nsp.py" ]]; then
-  if (( check )); then warn "not cloned at $arepo (Install on Android needs it): git clone https://github.com/enjoyerofslop/droidnative.git droidnative"
+  if (( check )); then warn "not cloned at $arepo (Install on Android needs it): git clone https://github.com/enjoyerofslop/droidnative.git '$arepo'"
   else step "cloned into $arepo" "git clone failed" git clone --quiet https://github.com/enjoyerofslop/droidnative.git "$arepo"; fi
 fi
 if [[ -f "$arepo/scripts/build_android_from_nsp.py" ]]; then ok "$(cd "$arepo" && pwd) ($(git -C "$arepo" log -1 --format='%h, %cr'))"; fi

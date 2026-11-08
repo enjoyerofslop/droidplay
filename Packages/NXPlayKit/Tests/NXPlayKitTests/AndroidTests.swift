@@ -96,4 +96,15 @@ import Testing
 
         #expect(library.androidDevices(with: game).map(\.id) == ["a"])
     }
+
+    /// Setup clones droidnative where Install on Android looks for it: the app tells bin/setup that folder, which 0.1.0 did
+    /// not, so the script cloned it into the app bundle's Setup folder
+    @MainActor @Test func setupIsToldWhereDroidnativeGoes() throws {
+        let suite = testDefaultsName()
+        defer { removeTestDefaults(suite) }
+        let library = Library(defaults: try #require(UserDefaults(suiteName: suite)), isScreenshot: true)
+        library.nxnativeAndroidPath = "~/Somewhere/droidnative"
+        let env = library.setupEnvironment()
+        #expect(env["NXNATIVE_ANDROID"] == ("~/Somewhere/droidnative" as NSString).expandingTildeInPath)
+    }
 }
