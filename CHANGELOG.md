@@ -17,6 +17,7 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 ### Changed
 
 - **NX Play becomes DroidPlay**, a fork that adds Android, at [enjoyerofslop/droidplay](https://github.com/enjoyerofslop/droidplay). It has its own name, bundle ID (`io.github.enjoyerofslop.droidplay`), settings, folder (`~/Library/Application Support/DroidPlay`) and update feed, so it installs beside NX Play without sharing anything with it. Android builds use [droidnative](https://github.com/enjoyerofslop/droidnative), nxnative with its Android port, in place of nxnative-android; Setup clones it, and a checkout still in an `nxnative-android` folder is found as before.
+- **DroidPlay's own versions start at 0.1.0**, as unsigned pre-releases: no Developer ID yet, so macOS asks once (Privacy & Security › Open Anyway) and the app doesn't update itself. The releases below are NX Play's.
 
 ## 1.8.4 — 2026-11-07
 

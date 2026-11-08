@@ -4,16 +4,21 @@
 # changelog's notes and any new contributors. Nothing is pushed or published before the confirmation; a failure before
 # it restores the files.
 #
-# usage: bin/release <version> [name]   e.g. bin/release 1.7.12 "Stair Climber"
+# usage: bin/release [--unsigned] <version> [name]   e.g. bin/release 1.7.12 "Stair Climber"
 #        the name, when given, follows the version in the GitHub release's title and the changelog's heading
+#   --unsigned  without a Developer ID: an ad-hoc signed app in a plain DMG, not notarized, published as a GitHub pre-release
+#               whose notes say how to open it (macOS blocks it the first time: Privacy & Security › Open Anyway). Such an app
+#               does not update itself (AppUpdater runs only for a Developer ID build); testers download each release
 # once:  xcrun notarytool store-credentials nxplay-notary --apple-id <you@example.com> --team-id <team ID>
 #        (an app-specific password from account.apple.com); NOTARY_PROFILE names another profile
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+unsigned=0
+if [[ "${1:-}" == --unsigned ]]; then unsigned=1; shift; fi
 version="${1:-}"
 name="${2:-}"
-[[ "$version" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "usage: bin/release <version> [name]  (e.g. 1.7.12 \"Stair Climber\")" >&2; exit 2; }
+[[ "$version" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "usage: bin/release [--unsigned] <version> [name]  (e.g. 1.7.12 \"Stair Climber\")" >&2; exit 2; }
 # letters, digits, spaces and a little punctuation: it goes into a sed replacement and a markdown heading
 [[ -z "$name" || "$name" =~ ^[[:alnum:]][[:alnum:]\ \'.-]{0,40}$ ]] || { echo "bin/release: a release name is letters, digits, spaces, ' . or -, up to 41 characters" >&2; exit 2; }
 # "1.7.12 — Stair Climber", or just "1.7.12"
@@ -21,7 +26,7 @@ label="$version${name:+ — $name}"
 profile="${NOTARY_PROFILE:-nxplay-notary}"
 app_name="DroidPlay"
 out="build/release"
-dmg="$out/NX-Play-$version.dmg"
+dmg="$out/$app_name-$version.dmg"
 
 say() { printf '\n\e[1m%s\e[0m\n' "$1"; }
 die() { echo "bin/release: $1" >&2; exit 1; }
@@ -45,12 +50,17 @@ git rev-parse -q --verify "refs/tags/v$version" > /dev/null && die "v$version is
 grep -q '^## Unreleased' CHANGELOG.md || die "CHANGELOG.md has no '## Unreleased' section"
 notes="$(awk '/^## Unreleased/ { f = 1; next } /^## / { exit } f' CHANGELOG.md | sed '/./,$!d')"
 [[ -n "$notes" ]] || die "nothing under '## Unreleased' in CHANGELOG.md"
-identity="$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)"
-[[ -n "$identity" ]] || die "no Developer ID Application certificate in the keychain"
-team="$(sed -n 's/.*(\([A-Z0-9]*\))$/\1/p' <<< "$identity")"
-xcrun notarytool history --keychain-profile "$profile" > /dev/null 2>&1 \
-  || die "no notarytool profile '$profile': xcrun notarytool store-credentials $profile --apple-id <Apple ID> --team-id $team"
-echo "  version $label, signed by $identity, notarized with profile $profile"
+if (( unsigned )); then
+  identity="-"; team=""   # ad-hoc: Apple silicon runs nothing without at least that signature
+  echo "  version $label, ad-hoc signed, not notarized: a pre-release"
+else
+  identity="$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)"
+  [[ -n "$identity" ]] || die "no Developer ID Application certificate in the keychain (bin/release --unsigned makes a pre-release without one)"
+  team="$(sed -n 's/.*(\([A-Z0-9]*\))$/\1/p' <<< "$identity")"
+  xcrun notarytool history --keychain-profile "$profile" > /dev/null 2>&1 \
+    || die "no notarytool profile '$profile': xcrun notarytool store-credentials $profile --apple-id <Apple ID> --team-id $team"
+  echo "  version $label, signed by $identity, notarized with profile $profile"
+fi
 
 # from here on, any exit before publishing (a failed step, die, Ctrl-C) puts project.yml and CHANGELOG.md back
 restore() { git checkout -q -- project.yml CHANGELOG.md; }
@@ -73,10 +83,10 @@ say "Build"
 rm -rf "$out"
 if command -v mise > /dev/null; then mise exec -- xcodegen generate --quiet; else xcodegen generate --quiet; fi
 # NX_SOURCE_ROOT empty: the released app keeps nxnative and Python in its own folder, never in this checkout
+if (( unsigned )); then sign=(ENABLE_HARDENED_RUNTIME=NO); else sign=(ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp); fi
 xcodebuild -project NXPlay.xcodeproj -scheme NXPlay -configuration Release -destination 'generic/platform=macOS' \
   -derivedDataPath "$out/derived" -quiet build \
-  CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$identity" DEVELOPMENT_TEAM="$team" \
-  ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp NX_SOURCE_ROOT= \
+  CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$identity" DEVELOPMENT_TEAM="$team" "${sign[@]}" NX_SOURCE_ROOT= \
   CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO   # no get-task-allow (debugger attach): notarization refuses it
 app="$out/derived/Build/Products/Release/$app_name.app"
 codesign --verify --strict --deep "$app"
@@ -96,11 +106,13 @@ notarize() {
   fi
 }
 
-say "Notarize the app"
-# stapled, so the app opens offline too, and so the copy auto-update takes out of the DMG carries its ticket
-ditto -c -k --keepParent "$app" "$out/app.zip"
-notarize "$out/app.zip"
-xcrun stapler staple -q "$app"
+if (( !unsigned )); then
+  say "Notarize the app"
+  # stapled, so the app opens offline too, and so the copy auto-update takes out of the DMG carries its ticket
+  ditto -c -k --keepParent "$app" "$out/app.zip"
+  notarize "$out/app.zip"
+  xcrun stapler staple -q "$app"
+fi
 
 say "DMG"
 stage="$out/dmg"
@@ -108,11 +120,13 @@ mkdir -p "$stage"
 ditto "$app" "$stage/$app_name.app"
 ln -s /Applications "$stage/Applications"
 hdiutil create -quiet -volname "$app_name" -srcfolder "$stage" -fs APFS -format ULFO "$dmg"
-codesign --sign "$identity" --timestamp "$dmg"
-notarize "$dmg"
-xcrun stapler staple -q "$dmg"
-spctl --assess --type open --context context:primary-signature "$dmg"
-spctl --assess --type execute "$app"
+if (( !unsigned )); then
+  codesign --sign "$identity" --timestamp "$dmg"
+  notarize "$dmg"
+  xcrun stapler staple -q "$dmg"
+  spctl --assess --type open --context context:primary-signature "$dmg"
+  spctl --assess --type execute "$app"
+fi
 shasum -a 256 "$dmg" | tee "$dmg.sha256"
 echo "  $dmg ($(du -h "$dmg" | cut -f1))"
 
@@ -121,6 +135,13 @@ if contributors="$(new_contributors)"; then
   if [[ -n "$contributors" ]]; then notes+=$'\n\n'"$contributors"; fi
 else
   echo "  (GitHub didn't say who the new contributors are: the notes go without them)"
+fi
+if (( unsigned )); then
+  notes+=$'\n\n'"### Installing this pre-release"$'\n\n'"This build is not signed with a Developer ID or notarized, so macOS blocks it the first time it opens:"$'\n\n'
+  notes+="1. Open the DMG and drag $app_name into Applications."$'\n'
+  notes+="2. Open $app_name. When macOS says it can't check it, click **Done**, then open System Settings › Privacy & Security and click **Open Anyway** beside $app_name. Or, in Terminal: \`xattr -dr com.apple.quarantine /Applications/$app_name.app\`."$'\n'
+  notes+="3. $app_name doesn't update itself in a pre-release: download each new one from this page."$'\n\n'
+  notes+="SHA-256 of \`$(basename "$dmg")\`: \`$(cut -d' ' -f1 "$dmg.sha256")\`"
 fi
 printf '  %s\n' "${notes//$'\n'/$'\n  '}"
 read -r -p $'\nCommit, tag and publish DroidPlay '"$label"$' to GitHub? [y/N] ' answer
@@ -135,5 +156,9 @@ git add project.yml CHANGELOG.md
 git commit -q -m "Release $label [skip ci]"
 git tag -a "v$version" -m "DroidPlay $label"
 git push -q origin main "v$version"
-gh release create "v$version" "$dmg" --title "DroidPlay $label" --notes "$notes"
+if (( unsigned )); then
+  gh release create "v$version" "$dmg" "$dmg.sha256" --prerelease --title "DroidPlay $label (pre-release, unsigned)" --notes "$notes"
+else
+  gh release create "v$version" "$dmg" --title "DroidPlay $label" --notes "$notes"
+fi
 echo "released: v$version${name:+ ($name)}"

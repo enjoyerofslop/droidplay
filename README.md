@@ -47,7 +47,7 @@ DroidPlay takes the other route: one app for all your games, everything portable
 
 ## Install
 
-1. Download the DMG from the [latest release](https://github.com/enjoyerofslop/droidplay/releases/latest) and drag DroidPlay into Applications. There is no signed release yet: until there is, build it [from the source](#from-the-source).
+1. Download the DMG from the [releases](https://github.com/enjoyerofslop/droidplay/releases) and drag DroidPlay into Applications. The releases are unsigned pre-releases for now (no Developer ID): the first time, macOS won't open it, so open System Settings › Privacy & Security and click **Open Anyway** beside DroidPlay. A pre-release doesn't update itself; download the next one from the same page. Or build it [from the source](#from-the-source).
 2. Install [Homebrew](https://brew.sh) if you don't have it: one command in Terminal.
 3. Open DroidPlay. **Setup** opens by itself (later: DroidPlay › Setup…). It checks the Mac and Xcode and says what to fix. **Install Missing** then:
    - downloads Xcode's Metal Toolchain, which every build needs to compile the game's shaders;
@@ -59,7 +59,7 @@ Everything except Homebrew's tools goes into one folder, `~/Library/Application 
 
 **DroidPlay › Uninstall DroidPlay…** removes it again: its folder, settings, caches and window state, its Dock icon if you kept it there, and the app, which goes to the Trash. It can also remove the Homebrew tools Setup installed. It leaves your games folder (the games, their builds and their saves), `prod.keys`, the save backup repository and Homebrew itself.
 
-DroidPlay updates itself. It checks GitHub for a new release at launch and once a day (or now, with DroidPlay › Check for Updates…), and downloads it, verifying its checksum, signature and notarization. The update installs when you quit, or now with **Restart to Update**. **What's New** beside it lists what changed since your version; Help › DroidPlay Changelog has every release. DroidPlay never interrupts a game or a build to ask. A banner above the library, or a pill in Console Mode's top bar, says an update is ready. In Console Mode, Y (or U) shows what's new. If DroidPlay can't update itself because it runs from the DMG or from Downloads, the library asks you to move it into Applications.
+A signed release of DroidPlay updates itself (a pre-release doesn't). It checks GitHub for a new release at launch and once a day (or now, with DroidPlay › Check for Updates…), and downloads it, verifying its checksum, signature and notarization. The update installs when you quit, or now with **Restart to Update**. **What's New** beside it lists what changed since your version; Help › DroidPlay Changelog has every release. DroidPlay never interrupts a game or a build to ask. A banner above the library, or a pill in Console Mode's top bar, says an update is ready. In Console Mode, Y (or U) shows what's new. If DroidPlay can't update itself because it runs from the DMG or from Downloads, the library asks you to move it into Applications.
 
 Put your keys in `~/.switch/prod.keys`, or choose the file in Settings.
 
