@@ -93,6 +93,13 @@ struct GameActions: View {
             .disabled(
                 busy || game?.canBuildFromFiles != true || game?.isNUP == true
                     || game?.isDump == true)
+            // the app and the game's files in a folder, to install on a device this Mac can't reach
+            Button(game?.androidExportURL == nil ? "Build APK" : "Rebuild APK", systemImage: "shippingbox.fill") {
+                game.map(library.buildAPK)
+            }
+            .disabled(
+                busy || game?.canBuildFromFiles != true || game?.isNUP == true
+                    || game?.isDump == true)
             if let game, case let devices = library.androidDevices(with: game), !devices.isEmpty {
                 Menu("Play on Android", systemImage: "play.circle") {
                     ForEach(devices) { device in
@@ -137,6 +144,11 @@ struct GameActions: View {
             if let ipa = game?.ipaURL {
                 Button("Show IPA in Finder", systemImage: "shippingbox") {
                     NSWorkspace.shared.activateFileViewerSelecting([ipa])
+                }
+            }
+            if let export = game?.androidExportURL {
+                Button("Show APK in Finder", systemImage: "shippingbox.fill") {
+                    NSWorkspace.shared.activateFileViewerSelecting([export])
                 }
             }
             if let app = game?.macAppURL {

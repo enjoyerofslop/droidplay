@@ -15,6 +15,9 @@ extension Library {
         run(.android(device), game)
     }
 
+    /// Build APK: the app and the game's files in `<game folder>/android/<game name> (Android)`, to copy to any device.
+    public func buildAPK(_ game: Game) { run(.apk, game) }
+
     /// The devices whose app has this game, which Play on Android can start it on.
     public func androidDevices(with game: Game) -> [AndroidDevice] {
         guard let id = game.titleID?.uppercased() else { return [] }
@@ -41,10 +44,10 @@ extension Library {
         }
     }
 
-    /// nxplay --android's command. The prod.keys were checked with the other kinds'; the Mac's nxnative checkout isn't
-    /// needed, as nxplay builds with nxnative-android's (NXNATIVE_ANDROID).
+    /// nxplay --android's or --apk's command. The prod.keys were checked with the other kinds'; the Mac's nxnative
+    /// checkout isn't needed, as nxplay builds with nxnative-android's (NXNATIVE_ANDROID).
     func androidCommand(
-        _ game: Game, on device: AndroidDevice, script: URL, keys: String, lang: [String]
+        _ kind: Job.Kind, _ game: Game, script: URL, keys: String, lang: [String]
     ) -> NXPlayCommand? {
         let repo = nxnativeAndroidRepo
         guard FileManager.default.fileExists(atPath: repo + "/" + Self.androidScript) else {
@@ -59,11 +62,13 @@ extension Library {
         environment["NXNATIVE_ANDROID"] = repo
         return NXPlayCommand(
             script: script,
-            arguments: Self.androidArguments(serial: device.id, lang: lang, folder: game.folder),
+            arguments: Self.androidArguments(kind, lang: lang, folder: game.folder),
             environment: environment)
     }
 
-    nonisolated static func androidArguments(serial: String, lang: [String], folder: URL) -> [String] {
-        ["--android", serial] + lang + [folder.path]
+    /// `--android <serial>` installs on the device; `--apk` exports instead.
+    nonisolated static func androidArguments(_ kind: Job.Kind, lang: [String], folder: URL) -> [String] {
+        let target = if case .android(let device) = kind { ["--android", device.id] } else { ["--apk"] }
+        return target + lang + [folder.path]
     }
 }

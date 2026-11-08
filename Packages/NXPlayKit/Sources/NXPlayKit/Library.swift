@@ -799,7 +799,13 @@ public final class Library {
         // what was made, in Finder
         let made = games.first { $0.id == job.game.id }
         if job.status == .succeeded,
-            let file = job.kind == .ipa ? made?.ipaURL : job.kind == .macApp ? made?.macAppURL : nil
+            let file =
+                switch job.kind {
+                case .ipa: made?.ipaURL
+                case .macApp: made?.macAppURL
+                case .apk: made?.androidExportURL
+                default: nil
+                }
         {
             NSWorkspace.shared.activateFileViewerSelecting([file])
         }
@@ -916,9 +922,8 @@ public final class Library {
             problem = "The nxplay script is missing from the app bundle."
             return nil
         }
-        // Install on Android builds with nxnative-android's checkout instead (androidCommand)
-        let android: AndroidDevice? = if case .android(let device) = kind { device } else { nil }
-        guard android != nil || fm.fileExists(atPath: repo + "/scripts/build_ipa_from_nsp.py") else {
+        // Install on Android and Build APK build with nxnative-android's checkout instead (androidCommand)
+        guard kind.buildsForAndroid || fm.fileExists(atPath: repo + "/scripts/build_ipa_from_nsp.py") else {
             problem =
                 "No nxnative checkout at \(repo). Open Setup to install it, or set its folder in Settings."
             return nil
@@ -935,8 +940,8 @@ public final class Library {
         let lang =
             (choices.removeValue(forKey: "DM_LANG") ?? GameLanguage.choose(language, for: game))
             .map { ["--lang", $0] } ?? []
-        if let android {
-            return androidCommand(game, on: android, script: script, keys: keys, lang: lang)
+        if kind.buildsForAndroid {
+            return androidCommand(kind, game, script: script, keys: keys, lang: lang)
         }
         var environment = NXPlayCommand.environment(
             nxnative: repo, keys: keys, venv: AppHome.venv.path)
@@ -972,7 +977,7 @@ public final class Library {
                 ]
             // a Personal Team cannot provision the Increased Memory Limit capability: build without it
             if team.isFree { environment["DM_ENTITLEMENTS"] = "" }
-        case .android: return nil  // androidCommand, above
+        case .android, .apk: return nil  // androidCommand, above
         }
         // an nxplay option, before the game folder (a play can rebuild too)
         if allowOtherMetal { arguments.insert("--allow-other-metal", at: 0) }

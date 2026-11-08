@@ -13,8 +13,10 @@
 #                  (and --bundle-id) after the game folder
 #   --android <serial>  build for Android with nxnative-android (NXNATIVE_ANDROID) in <game folder>/android, install the
 #                  app and copy the game to that adb device, and start it there (needs the game's NSP, NSZ, XCI or
-#                  XCZ files); with --build-only it builds the app and the game's files without sending anything to
-#                  the device
+#                  XCZ files)
+#   --apk          build for Android the same way, without a device, and export the app with the game's files for
+#                  installing on any device: <game folder>/android/<game name> (Android), with how to install it and an
+#                  adb install.sh
 #   --fps         Apple's Metal performance HUD over the game (DM_METAL_HUD=1): frame rate, frame and GPU time, memory
 #   --fullscreen   start the game's window in full screen (DM_FULLSCREEN=1); ⌃⌘F or the green button leave it
 #   --allow-other-metal  build shaders with this Mac's Metal compiler even when nxnative tested another one
@@ -61,7 +63,7 @@ else
 fi
 launcher_name=start_mac.sh
 
-rebuild=0 explicit_rebuild=0 fps=0 fullscreen=0 other_metal=() build_only=0 ipa=0 mac_app=0 lang="" device="" android="" settings_only=0
+rebuild=0 explicit_rebuild=0 fps=0 fullscreen=0 other_metal=() build_only=0 ipa=0 mac_app=0 lang="" device="" android="" apk=0 settings_only=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --rebuild) rebuild=1 explicit_rebuild=1; shift ;;
@@ -71,6 +73,7 @@ while [[ $# -gt 0 ]]; do
     --mac-app) mac_app=1; shift ;;
     --device) device="${2:-}"; shift $(( $# > 1 ? 2 : 1 )) ;;
     --android) android="${2:-}"; shift $(( $# > 1 ? 2 : 1 )) ;;
+    --apk) apk=1; shift ;;
     --fps) fps=1; shift ;;
     --fullscreen) fullscreen=1; shift ;;
     --allow-other-metal) other_metal=(--allow-other-metal); shift ;;
@@ -92,15 +95,15 @@ if [[ -n "$android" && ! "$android" =~ ^[A-Za-z0-9._:-]+$ ]]; then
   exit 2
 fi
 if [[ $# -lt 1 ]]; then
-  echo "usage: $(basename "$0") [--rebuild] [--build-only] [--settings] [--ipa | --mac-app | --device <udid> | --android <serial>] [--fps] [--fullscreen] [--allow-other-metal] [--lang <code>] <game folder> [build_ipa_from_nsp.py options...]" >&2
+  echo "usage: $(basename "$0") [--rebuild] [--build-only] [--settings] [--ipa | --mac-app | --device <udid> | --android <serial> | --apk] [--fps] [--fullscreen] [--allow-other-metal] [--lang <code>] <game folder> [build_ipa_from_nsp.py options...]" >&2
   exit 2
 fi
 game="$(cd "$1" && pwd)"; shift
 
-# --android builds with nxnative-android, the fork that carries the Android port (seedds/nxnative stays Apple-only): a
-# checkout of its own, followed the way nxnative's is
+# --android and --apk build with nxnative-android, the fork that carries the Android port (seedds/nxnative stays
+# Apple-only): a checkout of its own, followed the way nxnative's is
 repo_name=nxnative
-if [[ -n "$android" ]]; then
+if [[ -n "$android" || $apk -eq 1 ]]; then
   repo_name=nxnative-android
   if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then repo="$NXNATIVE_ANDROID"
   elif [[ -d "$here/nxnative-android" ]]; then repo="$here/nxnative-android"
@@ -381,7 +384,7 @@ case "$update_mode" in
   update | ask | current) ;;
   *) warn "nxplay: NXPLAY_UPDATE is update, ask or current, not '$update_mode'"; exit 2 ;;
 esac
-if (( build_only || ipa || mac_app || explicit_rebuild )) || [[ -n "$device" || -n "$android" ]]; then update_mode=update; fi
+if (( build_only || ipa || mac_app || explicit_rebuild )) || [[ -n "$device" || -n "$android" || $apk -eq 1 ]]; then update_mode=update; fi
 if [[ "$update_mode" == ask ]]; then ask_update; fi
 # NX Play's answers come on stdin; the build and the game get none, as before there was a question
 if [[ "${NXPLAY_PROGRESS:-}" == json ]]; then exec < /dev/null; fi
@@ -527,25 +530,138 @@ android_title() {
   [[ -n "$best" ]] && basename "$best" _build
 }
 
+# --apk's export, <game folder>/android/<game name> (Android): the app and the game's folder as the device keeps it,
+# files/games/<title ID> (build_android_from_nsp.py's push_game: the rewritten code, the font, the shaders, the RomFS,
+# the DLC, the icon and control data, defaults.txt with the game language, and game.json), APFS clones of the build's
+# files where the volume can clone. The app carries every game built on this Mac; the device lists the ones it has.
+# How to install it is written beside them, and install.sh does it over adb from any Mac or Linux computer.
+android_export() {
+  local adir="$1" tid="$2" work patched="" p ver ex name out dst d
+  work="$adir/${tid}_build"
+  for p in "$work"/patched_android_v*/; do
+    [[ -d "$p" && ( -z "$patched" || "$p" -nt "$patched" ) ]] && patched="${p%/}"
+  done
+  if [[ -z "$patched" ]]; then warn "nxplay: the Android build left no rewritten code in $work"; return 1; fi
+  ver="${patched##*/patched_android_}"
+  ex="$work/extract/$ver"
+  # the name, the language (--lang, else English when the game has it, else its first) and game.json, read from the
+  # control data as the script reads it (nxnative-android's dm/tools/nacp.py); game.json written as the script writes it
+  name="$(cd "$repo" && python3 - "$ex" "$tid" "$ver" "$lang" "$work" << 'EOF'
+import json, os, sys
+sys.path.insert(0, 'dm/tools')
+import nacp
+ex, tid, ver, want, work = sys.argv[1:]
+control = os.path.join(ex, 'control.nacp')
+known = os.path.isfile(control)
+have = nacp.languages(control) if known else []
+lang = want or ('en-US' if 'en-US' in have or not have else have[0])
+name = (nacp.name(control) if known else '') or tid
+rom = os.path.join(ex, 'RomFS.img')
+meta = {'title_id': tid, 'name': name, 'version': ver, 'display': nacp.version(control) if known else '',
+        'romfs_bytes': os.path.getsize(rom) if os.path.isfile(rom) else None}
+with open(os.path.join(work, 'android_export_game.json'), 'w', encoding='utf-8') as f:
+    f.write(json.dumps(meta, indent=1))
+with open(os.path.join(work, 'android_export_defaults.txt'), 'w', encoding='utf-8') as f:
+    f.write(f'DM_LANG={lang}\n')
+print(name)
+EOF
+)" || return 1
+  # a folder name every file system takes, the device's and Windows' too
+  name="$(tr -d '/\\:*?"<>|' <<< "$name" | sed -E 's/  +/ /g; s/^ +| +$//g')"
+  out="$adir/${name:-$tid} (Android)"
+  dst="$out/games/$tid"
+  rm -rf "$out"
+  mkdir -p "$dst"
+  clone() { cp -cR "$1" "$2" 2> /dev/null || cp -R "$1" "$2"; }
+  clone "$HOME/.local/share/nxnative/android/nxnative.apk" "$out/nxnative.apk"
+  clone "$patched" "$dst/code"
+  for d in font spv aoc; do
+    if [[ -d "$work/$d" ]]; then clone "$work/$d" "$dst/$d"; fi
+  done
+  if [[ -f "$ex/RomFS.img" ]]; then clone "$ex/RomFS.img" "$dst/RomFS.img"
+  elif [[ -d "$ex/RomFS" ]]; then clone "$ex/RomFS" "$dst/RomFS"; fi
+  for d in icon.jpg control.nacp; do
+    if [[ -f "$ex/$d" ]]; then clone "$ex/$d" "$dst/$d"; fi
+  done
+  mv -f "$work/android_export_defaults.txt" "$dst/defaults.txt"
+  mv -f "$work/android_export_game.json" "$dst/game.json"
+  cat > "$out/How to install.txt" << EOF
+$name for Android, built by NX Play with nxnative-android on $(date +%Y-%m-%d).
+It runs on arm64 Android devices with Vulkan (an Ayn Odin 2, a recent phone).
+
+With a Mac or Linux computer that has adb (Android's platform-tools), and the device connected with USB debugging on:
+  ./install.sh            (or ./install.sh <serial> when several devices are connected)
+
+By hand:
+1. Install nxnative.apk on the device. If Android says it conflicts with an installed app, that copy of nxnative was
+   built on another computer: uninstall it first, which deletes its games and saves.
+2. Open nxnative once, so Android makes its folder, then close it.
+3. Copy the folder games/$tid into Android/data/org.nxnative.android/files/games/ on the device, for example
+   over USB file transfer from a computer.
+4. Open nxnative and pick $name.
+
+The app carries every game built on the Mac that made it, and lists the ones copied to the device. A newer
+nxnative.apk from the same Mac installs over it and keeps the games and saves. The game's log on the device is
+Android/data/org.nxnative.android/files/log.txt.
+EOF
+  # the folders go as tar archives, one push each instead of one per file (the shaders are tens of thousands), unpacked
+  # by the device's shell, which may make folders under Android/data where adb's own push may not; then opened to the
+  # app, as the script's open_tree does
+  cat > "$out/install.sh" << EOF
+#!/bin/sh
+# Installs $name on an Android device with adb: nxnative.apk (an update keeps the device's games and saves),
+# then games/$tid in the app's folder. usage: ./install.sh [adb serial]
+set -e
+cd "\$(dirname "\$0")"
+if [ -n "\${1:-}" ]; then export ANDROID_SERIAL="\$1"; fi
+dst=/sdcard/Android/data/org.nxnative.android/files/games/$tid
+echo "installing nxnative.apk"
+adb install -r nxnative.apk
+adb shell am force-stop org.nxnative.android
+adb shell "rm -rf '\$dst/code' '\$dst/font' && mkdir -p '\$dst'"
+tmp="\$(mktemp -d)"
+trap 'rm -rf "\$tmp"' EXIT
+for d in games/$tid/*; do
+  n="\$(basename "\$d")"
+  echo "copying \$n"
+  if [ -d "\$d" ]; then
+    COPYFILE_DISABLE=1 tar --format ustar -cf "\$tmp/\$n.tar" -C "games/$tid" "\$n"
+    adb push "\$tmp/\$n.tar" "/data/local/tmp/nxnative-\$n.tar"
+    adb shell "rm -rf '\$dst/\$n' && tar -xf '/data/local/tmp/nxnative-\$n.tar' -C '\$dst'; rm -f '/data/local/tmp/nxnative-\$n.tar'"
+    rm -f "\$tmp/\$n.tar"
+  else
+    adb push "\$d" "\$dst/\$n"
+  fi
+done
+adb shell "chmod -R a+rwX '\$dst'; chmod a+rwx '\${dst%/*}'" > /dev/null 2>&1 || true
+echo "done: open nxnative on the device and pick $name"
+EOF
+  chmod +x "$out/install.sh"
+  say "exported: $out"
+  say "nxplay: copy that folder anywhere; How to install.txt says how to put the game on a device (install.sh does it with adb)"
+}
+
 # --android <serial>: nxnative-android builds the game's host and the one app that carries every game built on this
 # Mac, installs it as an update (the saves on the device stay) and copies the game to the device; then the game starts
-# there. The script reuses each step whose inputs haven't changed, so an install after either checkout moved rebuilds
-# what changed and no more. Even its --push-only reads the game files first, so a game whose files were removed can't
-# be installed again.
-if [[ -n "$android" ]]; then
+# there. --apk builds the same without a device (--no-push) and exports it (android_export). The script reuses each
+# step whose inputs haven't changed, so a build after either checkout moved rebuilds what changed and no more. Even
+# its --push-only reads the game files first, so a game whose files were removed can't be built or installed again.
+if [[ -n "$android" || $apk -eq 1 ]]; then
   android_tools
   adir="$game/android"
   if (( $(android_files "$adir") == 0 )); then
     warn "nxplay: an Android build needs the game's NSP, NSZ, XCI or XCZ files in $game (a NUP or a dump isn't supported there)"
     exit 1
   fi
-  # --build-only: the app and the game's files, nothing sent to the device
-  push=()
-  if (( build_only )); then push=(--no-push); fi
-  (cd "$repo" && python3 scripts/build_android_from_nsp.py "$adir" -k "$keys" --serial "$android" ${push[@]+"${push[@]}"} ${lang:+--language "$lang"} ${progress[@]+"${progress[@]}"} "$@")
+  target=(--serial "$android")
+  if (( apk )); then target=(--no-push); fi
+  (cd "$repo" && python3 scripts/build_android_from_nsp.py "$adir" -k "$keys" "${target[@]}" ${lang:+--language "$lang"} ${progress[@]+"${progress[@]}"} "$@")
   tid="$(android_title "$adir")"
   if [[ -z "$tid" ]]; then warn "nxplay: the Android build left no <title ID>_build in $adir"; exit 1; fi
-  if (( build_only )); then exit 0; fi
+  if (( apk )); then
+    android_export "$adir" "$tid"
+    exit
+  fi
   say "nxplay: starting the game on $android"
   if ! adb -s "$android" shell am start -n org.nxnative.android/.Launcher --es game "$tid" --ez play true > /dev/null; then
     say "nxplay: installed; open nxnative on the device and pick the game (it could not be started from here)"

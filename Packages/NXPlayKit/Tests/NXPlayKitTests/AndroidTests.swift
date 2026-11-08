@@ -31,16 +31,45 @@ import Testing
         #expect(AndroidDevice.parse(gamesListing: "ls: /sdcard/…: No such file or directory").isEmpty)
     }
 
-    @Test func installsThroughNxplay() {
+    @Test func installsOrExportsThroughNxplay() {
         let folder = URL(filePath: "/Games/Brilliant Diamond", directoryHint: .isDirectory)
+        let odin = AndroidDevice(id: "4839ed0d", name: "Odin 2", model: "Odin2")
         #expect(
-            Library.androidArguments(serial: "4839ed0d", lang: ["--lang", "fr"], folder: folder)
+            Library.androidArguments(.android(odin), lang: ["--lang", "fr"], folder: folder)
                 == ["--android", "4839ed0d", "--lang", "fr", "/Games/Brilliant Diamond"])
+        #expect(
+            Library.androidArguments(.apk, lang: [], folder: folder)
+                == ["--apk", "/Games/Brilliant Diamond"])
     }
 
     @Test func doesNotTouchTheMacBuild() {
         let odin = AndroidDevice(id: "4839ed0d", name: "Odin 2", model: "Odin2")
-        #expect(!Job.Kind.android(odin).rewritesTheMacBuild)
+        for kind in [Job.Kind.android(odin), .apk] {
+            #expect(kind.buildsForAndroid)
+            #expect(!kind.rewritesTheMacBuild)
+        }
+        #expect(!Job.Kind.ipa.buildsForAndroid)
+    }
+
+    @Test func findsTheExportedAPK() throws {
+        let folder = FileManager.default.temporaryDirectory.appending(
+            path: "nxplay-apk-\(UUID().uuidString)/Game", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: folder.deletingLastPathComponent()) }
+        for path in [
+            "Game [0100000011D90000][v0].nsp", "android/Game (Android)/nxnative.apk",
+            // no app in it: not an export
+            "android/Other (Android)/games/x",
+        ] {
+            let url = folder.appending(path: path)
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data([1]).write(to: url)
+        }
+
+        let game = try #require(GameScanner.game(at: folder))
+
+        #expect(game.androidExportURL?.lastPathComponent == "Game (Android)")
+        #expect(game.androidExportURL?.deletingLastPathComponent().lastPathComponent == "android")
     }
 
     @MainActor @Test func playOnAndroidListsTheDevicesWithTheGame() throws {

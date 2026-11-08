@@ -12,6 +12,16 @@ public final class Job: Identifiable {
         case install(Device)
         /// Through nxnative-android and adb: build in the game folder's android folder, install and start it.
         case android(AndroidDevice)
+        /// The same build without a device, exported with the game's files for installing anywhere (nxplay --apk).
+        case apk
+
+        /// Builds with nxnative-android, in the game folder's android folder.
+        public var buildsForAndroid: Bool {
+            switch self {
+            case .android, .apk: true
+            default: false
+            }
+        }
 
         /// Builds in the Mac build's work folder with the current nxnative, rewriting the patched game code and the
         /// shader tables its launcher runs: not for a kept build.
@@ -19,7 +29,7 @@ public final class Job: Identifiable {
             switch self {
             case .ipa, .macApp, .install: true
             // its own folder, <game folder>/android, with nxnative-android's code
-            case .extract, .rebuild, .play, .android: false
+            case .extract, .rebuild, .play, .android, .apk: false
             }
         }
     }

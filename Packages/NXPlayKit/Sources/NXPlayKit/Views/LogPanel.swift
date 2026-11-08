@@ -79,6 +79,7 @@ struct LogPanel: View {
             case .macApp: "Make Mac App"
             case .install(let device): "Install on \(device.name)"
             case .android(let device): "Install on \(device.name)"
+            case .apk: "Build APK"
             }
         let state =
             switch job.status {

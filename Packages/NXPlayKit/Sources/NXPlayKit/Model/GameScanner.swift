@@ -59,6 +59,9 @@ public enum GameScanner {
             .flatMap { isDirectory($0) ? $0 : nil },
             // nxnative's app: <game name>.app with its Mac host inside (not any app that happens to be there)
             macAppURL: newest(entries.filter(isMacApp)),
+            androidExportURL: newest(
+                children(of: folder.appending(path: androidFolderName, directoryHint: .isDirectory))
+                    .filter(isAndroidExport)),
             hasPackages: hasPackages,
             isNUP: nup != nil,
             isDump: isDump,
@@ -133,6 +136,12 @@ public enum GameScanner {
     /// (nxnative's cheat files and the player's toggles, at `<DM_ROOT>/cheats`: the build folder is `DM_ROOT` in
     /// start_mac.sh).
     static let playerData: Set<String> = ["run", "cheats"]
+
+    /// Build APK's export: `<game name> (Android)` with the app in it (nxplay --apk), not any folder named so.
+    static func isAndroidExport(_ url: URL) -> Bool {
+        url.lastPathComponent.hasSuffix(" (Android)")
+            && FileManager.default.fileExists(atPath: url.appending(path: "nxnative.apk").path)
+    }
 
     /// nxnative's app: `<game name>.app` with its Mac host inside, not any app that happens to be there.
     static func isMacApp(_ url: URL) -> Bool {
