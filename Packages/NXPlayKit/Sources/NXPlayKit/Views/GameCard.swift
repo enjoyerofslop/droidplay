@@ -95,7 +95,7 @@ struct GameBadge: View {
             Badge(text: "Building IPA\(percent)", color: .blue)
         case (.running?, .macApp?):
             Badge(text: "Making App\(percent)", color: .blue)
-        case (.running?, .install?):
+        case (.running?, .install?), (.running?, .android?):
             Badge(text: "Installing\(percent)", color: .blue)
         case (.running?, _):
             // an extracted game's build only builds (Update All Builds, a play's rebuild first)

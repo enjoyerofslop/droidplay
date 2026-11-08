@@ -8,6 +8,8 @@ public enum GameScanner {
     static let launcherName = "start_mac.sh"
     /// nxplay's mark of a kept build (Keep This Build).
     static let keepName = "keep"
+    /// Install on Android's folder in a game's folder (nxplay --android): its copies of the game files and its build.
+    static let androidFolderName = "android"
 
     public static func scan(root: URL) -> [Game] {
         children(of: root)

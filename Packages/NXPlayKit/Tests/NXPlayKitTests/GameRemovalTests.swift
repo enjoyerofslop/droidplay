@@ -23,6 +23,7 @@ import Testing
             "Fake/\(id)_build/cheats/0123456789ABCDEF.txt",
             "Fake/\(id)_build/cheats/0123456789ABCDEF.enabled",
             "Fake/Notes.txt",
+            "Fake/android/Fake [\(id)][v0].nsp", "Fake/android/\(id)_build/spv/0.spv",
         ] {
             try write(root.appending(path: path))
         }
@@ -56,6 +57,7 @@ import Testing
         }
         for gone in [
             "Fake/Fake [\(Self.id)][v0].nsp", "Fake/Fake.ipa", "Fake/Fake.app", "Fake/Fake.app.key",
+            "Fake/android",
             "Fake/\(Self.id)_survey", "\(build)/extract", "\(build)/start_mac.sh",
             "\(build)/run/temp",
         ] {

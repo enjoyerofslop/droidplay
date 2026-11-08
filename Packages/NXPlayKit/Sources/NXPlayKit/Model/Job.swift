@@ -10,13 +10,16 @@ public final class Job: Identifiable {
         case macApp
         /// Through Xcode: prepare the project, build it signed, install and start it.
         case install(Device)
+        /// Through nxnative-android and adb: build in the game folder's android folder, install and start it.
+        case android(AndroidDevice)
 
         /// Builds in the Mac build's work folder with the current nxnative, rewriting the patched game code and the
         /// shader tables its launcher runs: not for a kept build.
         public var rewritesTheMacBuild: Bool {
             switch self {
             case .ipa, .macApp, .install: true
-            case .extract, .rebuild, .play: false
+            // its own folder, <game folder>/android, with nxnative-android's code
+            case .extract, .rebuild, .play, .android: false
             }
         }
     }

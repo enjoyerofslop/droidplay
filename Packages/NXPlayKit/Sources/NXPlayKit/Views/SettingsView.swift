@@ -59,7 +59,8 @@ private struct SettingsPage<Content: View>: View {
     }
 }
 
-private struct Footer: View {
+/// A section's footnote, as Settings words them.
+struct Footer: View {
     let text: String
     init(_ text: String) { self.text = text }
 
@@ -68,7 +69,8 @@ private struct Footer: View {
     }
 }
 
-private func exists(_ path: String, _ inside: String = "") -> Bool {
+/// A Settings path (~ allowed) is there, or a file inside it.
+func exists(_ path: String, _ inside: String = "") -> Bool {
     let base = (path as NSString).expandingTildeInPath
     return FileManager.default.fileExists(atPath: inside.isEmpty ? base : base + "/" + inside)
 }
@@ -254,6 +256,7 @@ private struct DeviceSettings: View {
                 )
             }
             RemoteSettingsSection()
+            AndroidSettingsSection()
         }
         .onAppear { library.refreshDevices() }
     }
@@ -277,7 +280,7 @@ private struct UpdatesTab: View {
     }
 }
 
-private struct PathField: View {
+struct PathField: View {
     let title: LocalizedStringKey
     @Binding var path: String
     let directory: Bool

@@ -11,7 +11,11 @@
 #   --device <udid>  install on a device through Xcode instead: prepare the game's Xcode project, build it signed
 #                  with your team (Xcode > Settings > Apple Accounts), install and start it; pass --team-id <id>
 #                  (and --bundle-id) after the game folder
-#   --fps          Apple's Metal performance HUD over the game (DM_METAL_HUD=1): frame rate, frame and GPU time, memory
+#   --android <serial>  build for Android with nxnative-android (NXNATIVE_ANDROID) in <game folder>/android, install the
+#                  app and copy the game to that adb device, and start it there (needs the game's NSP, NSZ, XCI or
+#                  XCZ files); with --build-only it builds the app and the game's files without sending anything to
+#                  the device
+#   --fps         Apple's Metal performance HUD over the game (DM_METAL_HUD=1): frame rate, frame and GPU time, memory
 #   --fullscreen   start the game's window in full screen (DM_FULLSCREEN=1); ⌃⌘F or the green button leave it
 #   --allow-other-metal  build shaders with this Mac's Metal compiler even when nxnative tested another one
 #                  (nxnative's own --allow-other-metal, passed to every build; issue #242)
@@ -20,6 +24,8 @@
 #                  for a game already built, without updating nxnative, and exit; a build and a play write it too.
 #                  Each setting is an environment variable (DM_FPS_TARGET=30, ...) the game reads when it starts
 # env:   NXNATIVE (repository; default ./nxnative in this checkout, as bin/setup clones it, else ../nxnative beside it),
+#        NXNATIVE_ANDROID (the nxnative-android repository --android builds with; default ./nxnative-android in this
+#        checkout, else ../nxnative-android beside it), ANDROID_HOME (the Android SDK; default ~/Library/Android/sdk),
 #        NXPLAY_VENV (Python environment; default .venv in this checkout, made by bin/setup), NX_KEYS (default ~/.switch/prod.keys),
 #        DM_SAVE_SYNC (nxnative's cloud saves: a folder, icloud, or 0; passed on to the game as it is),
 #        NXPLAY_SETTINGS (names of DM_ variables in the environment the game is given, said in the output when it starts),
@@ -55,7 +61,7 @@ else
 fi
 launcher_name=start_mac.sh
 
-rebuild=0 explicit_rebuild=0 fps=0 fullscreen=0 other_metal=() build_only=0 ipa=0 mac_app=0 lang="" device="" settings_only=0
+rebuild=0 explicit_rebuild=0 fps=0 fullscreen=0 other_metal=() build_only=0 ipa=0 mac_app=0 lang="" device="" android="" settings_only=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --rebuild) rebuild=1 explicit_rebuild=1; shift ;;
@@ -64,6 +70,7 @@ while [[ $# -gt 0 ]]; do
     --ipa) ipa=1; shift ;;
     --mac-app) mac_app=1; shift ;;
     --device) device="${2:-}"; shift $(( $# > 1 ? 2 : 1 )) ;;
+    --android) android="${2:-}"; shift $(( $# > 1 ? 2 : 1 )) ;;
     --fps) fps=1; shift ;;
     --fullscreen) fullscreen=1; shift ;;
     --allow-other-metal) other_metal=(--allow-other-metal); shift ;;
@@ -79,11 +86,30 @@ if [[ -n "$device" && ! "$device" =~ ^[0-9A-Fa-f-]+$ ]]; then
   warn "nxplay: --device wants a device UDID (xcrun devicectl list devices), not '$device'"
   exit 2
 fi
+# an adb serial: USB ones are letters and digits, Wi-Fi ones an address and port (192.168.1.20:5555, adb-…._adb-tls-connect._tcp)
+if [[ -n "$android" && ! "$android" =~ ^[A-Za-z0-9._:-]+$ ]]; then
+  warn "nxplay: --android wants an adb device serial (adb devices), not '$android'"
+  exit 2
+fi
 if [[ $# -lt 1 ]]; then
-  echo "usage: $(basename "$0") [--rebuild] [--build-only] [--settings] [--ipa | --mac-app | --device <udid>] [--fps] [--fullscreen] [--allow-other-metal] [--lang <code>] <game folder> [build_ipa_from_nsp.py options...]" >&2
+  echo "usage: $(basename "$0") [--rebuild] [--build-only] [--settings] [--ipa | --mac-app | --device <udid> | --android <serial>] [--fps] [--fullscreen] [--allow-other-metal] [--lang <code>] <game folder> [build_ipa_from_nsp.py options...]" >&2
   exit 2
 fi
 game="$(cd "$1" && pwd)"; shift
+
+# --android builds with nxnative-android, the fork that carries the Android port (seedds/nxnative stays Apple-only): a
+# checkout of its own, followed the way nxnative's is
+repo_name=nxnative
+if [[ -n "$android" ]]; then
+  repo_name=nxnative-android
+  if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then repo="$NXNATIVE_ANDROID"
+  elif [[ -d "$here/nxnative-android" ]]; then repo="$here/nxnative-android"
+  else repo="$here/../nxnative-android"; fi
+  if [[ ! -f "$repo/scripts/build_android_from_nsp.py" ]]; then
+    warn "nxplay: no nxnative-android checkout at $repo: clone one (git clone https://github.com/RogelioLB/nxnative-android '$repo') or set its folder (NXNATIVE_ANDROID, NX Play's Settings › Devices)"
+    exit 1
+  fi
+fi
 
 # The newest <title ID>_build/start_mac.sh whose Mac host is still there
 find_launcher() {
@@ -209,19 +235,19 @@ no_local_commits() {
 update_nxnative() {
   # nothing to follow, which is what a game pinned to a local branch wants: not a failure to report on every play
   if ! git -C "$repo" rev-parse -q --verify '@{u}' > /dev/null; then
-    say "nxnative: no upstream to follow, staying on this code"
+    say "$repo_name: no upstream to follow, staying on this code"
     return 0
   fi
   git -C "$repo" fetch --quiet || return 1
   local upstream tip
   upstream="$(git -C "$repo" rev-parse '@{u}')" || return 1
-  if [[ "$upstream" == "$before" ]]; then say "nxnative: up to date"; return 0; fi
+  if [[ "$upstream" == "$before" ]]; then say "$repo_name: up to date"; return 0; fi
   if git -C "$repo" merge-base --is-ancestor HEAD '@{u}'; then
     git -C "$repo" merge --ff-only --quiet '@{u}'
     return
   fi
   if no_local_commits; then
-    say "nxnative: upstream rewrote its history (force push); following it, no local commits to keep"
+    say "$repo_name: upstream rewrote its history (force push); following it, no local commits to keep"
     git -C "$repo" reset --keep '@{u}'   # keeps uncommitted edits, refuses when the new history touches them
     return
   fi
@@ -355,7 +381,7 @@ case "$update_mode" in
   update | ask | current) ;;
   *) warn "nxplay: NXPLAY_UPDATE is update, ask or current, not '$update_mode'"; exit 2 ;;
 esac
-if (( build_only || ipa || mac_app || explicit_rebuild )) || [[ -n "$device" ]]; then update_mode=update; fi
+if (( build_only || ipa || mac_app || explicit_rebuild )) || [[ -n "$device" || -n "$android" ]]; then update_mode=update; fi
 if [[ "$update_mode" == ask ]]; then ask_update; fi
 # NX Play's answers come on stdin; the build and the game get none, as before there was a question
 if [[ "${NXPLAY_PROGRESS:-}" == json ]]; then exec < /dev/null; fi
@@ -374,9 +400,9 @@ elif update_nxnative; then
     count="$(git -C "$repo" rev-list --count "$before..HEAD")"
     # a rewrite can re-create the same code under new commit ids: nothing to rebuild then
     if [[ "$(git -C "$repo" rev-parse "$before^{tree}")" == "$(git -C "$repo" rev-parse 'HEAD^{tree}')" ]]; then
-      say "nxnative updated: $count new commit$([[ $count == 1 ]] || echo s), same files as before, no rebuild"
+      say "$repo_name updated: $count new commit$([[ $count == 1 ]] || echo s), same files as before, no rebuild"
     else
-      say "nxnative updated: $count new commit$([[ $count == 1 ]] || echo s), rebuilding"
+      say "$repo_name updated: $count new commit$([[ $count == 1 ]] || echo s), rebuilding"
       rebuild=1
     fi
     git -C "$repo" --no-pager log --no-decorate --format='  %C(yellow)%h%C(reset) %s %C(dim)(%an, %ar)%C(reset)' -n 30 "$before..HEAD"
@@ -446,6 +472,85 @@ if [[ $ipa -eq 1 || $mac_app -eq 1 || -n "$device" ]]; then
       exit 1
     fi
   done
+fi
+
+# --android: the Android SDK, a JDK (keytool and javac sign and build the app) and adb, which a Mac app started from
+# Finder doesn't have on PATH. Homebrew's openjdk isn't registered with java_home unless linked by hand.
+android_tools() {
+  local sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}" jdk
+  export ANDROID_HOME="$sdk"
+  if [[ -d "$sdk/platform-tools" ]]; then PATH="$sdk/platform-tools:$PATH"; fi
+  if [[ ! -x "${JAVA_HOME:-/nonexistent}/bin/keytool" ]]; then
+    for jdk in "$(/usr/libexec/java_home 2> /dev/null || true)" \
+        /opt/homebrew/opt/openjdk{,@25,@21,@17}/libexec/openjdk.jdk/Contents/Home \
+        /usr/local/opt/openjdk{,@25,@21,@17}/libexec/openjdk.jdk/Contents/Home; do
+      if [[ -n "$jdk" && -x "$jdk/bin/keytool" ]]; then export JAVA_HOME="$jdk"; break; fi
+    done
+  fi
+  if [[ -n "${JAVA_HOME:-}" ]]; then PATH="$JAVA_HOME/bin:$PATH"; fi
+  export PATH
+}
+
+# The Android build's own folder, <game folder>/android, with the game files in it: build_android_from_nsp.py keeps its
+# work in <title ID>_build beside the files it reads, as the Mac build does, and nxnative-android's code (forked from an
+# older nxnative) must neither reuse nor rewrite the Mac build's extraction and patched modules. Each file is a relative
+# symbolic link to the game folder's: no space taken, and removing a game file (Free Up Space) frees its space at once.
+# A link whose file is gone is removed, as the script would stop on it; a copy put there by hand (an APFS clone of the
+# same size) stays as it is, and one that no longer matches the game folder's file becomes a link to it.
+android_files() {
+  local dir="$1" f to n=0
+  mkdir -p "$dir"
+  for f in "$dir"/*; do
+    if [[ -L "$f" && ! -e "$f" ]]; then rm -f "$f"; fi
+  done
+  shopt -s nocasematch
+  for f in "$game"/*; do
+    case "$f" in *.nsp | *.nsz | *.xci | *.xcz) ;; *) continue ;; esac
+    [[ -s "$f" ]] || continue
+    n=$(( n + 1 ))
+    to="$dir/$(basename "$f")"
+    if [[ -L "$to" ]] || [[ -e "$to" && "$(stat -f %z "$to")" == "$(stat -f %z "$f")" ]]; then continue; fi
+    rm -f "$to"
+    ln -s "../$(basename "$f")" "$to"
+  done
+  shopt -u nocasematch
+  echo "$n"
+}
+
+# The title ID of the newest Android build in the folder, from its <title ID>_build
+android_title() {
+  local best="" b
+  for b in "$1"/*_build; do
+    [[ -d "$b" && "$(basename "$b" _build)" =~ ^[0-9A-Fa-f]{16}$ ]] || continue
+    [[ -z "$best" || "$b" -nt "$best" ]] && best="$b"
+  done
+  [[ -n "$best" ]] && basename "$best" _build
+}
+
+# --android <serial>: nxnative-android builds the game's host and the one app that carries every game built on this
+# Mac, installs it as an update (the saves on the device stay) and copies the game to the device; then the game starts
+# there. The script reuses each step whose inputs haven't changed, so an install after either checkout moved rebuilds
+# what changed and no more. Even its --push-only reads the game files first, so a game whose files were removed can't
+# be installed again.
+if [[ -n "$android" ]]; then
+  android_tools
+  adir="$game/android"
+  if (( $(android_files "$adir") == 0 )); then
+    warn "nxplay: an Android build needs the game's NSP, NSZ, XCI or XCZ files in $game (a NUP or a dump isn't supported there)"
+    exit 1
+  fi
+  # --build-only: the app and the game's files, nothing sent to the device
+  push=()
+  if (( build_only )); then push=(--no-push); fi
+  (cd "$repo" && python3 scripts/build_android_from_nsp.py "$adir" -k "$keys" --serial "$android" ${push[@]+"${push[@]}"} ${lang:+--language "$lang"} ${progress[@]+"${progress[@]}"} "$@")
+  tid="$(android_title "$adir")"
+  if [[ -z "$tid" ]]; then warn "nxplay: the Android build left no <title ID>_build in $adir"; exit 1; fi
+  if (( build_only )); then exit 0; fi
+  say "nxplay: starting the game on $android"
+  if ! adb -s "$android" shell am start -n org.nxnative.android/.Launcher --es game "$tid" --ez play true > /dev/null; then
+    say "nxplay: installed; open nxnative on the device and pick the game (it could not be started from here)"
+  fi
+  exit 0
 fi
 
 if [[ $ipa -eq 1 ]]; then

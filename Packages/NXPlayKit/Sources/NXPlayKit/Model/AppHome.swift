@@ -33,6 +33,18 @@ public enum AppHome {
         return folder.appending(path: "nxnative").path
     }
 
+    /// nxnative-android, for Install on Android, where nxplay looks for it: beside nxnative for a build from a checkout
+    /// (./nxnative-android, else ../nxnative-android), else in our own folder.
+    public static var defaultNXNativeAndroid: String {
+        if let sourceRoot {
+            let inside = sourceRoot.appending(path: "nxnative-android")
+            return FileManager.default.fileExists(atPath: inside.path)
+                ? inside.path
+                : sourceRoot.deletingLastPathComponent().appending(path: "nxnative-android").path
+        }
+        return folder.appending(path: "nxnative-android").path
+    }
+
     /// The Python environment nxnative's scripts run in.
     public static var venv: URL {
         sourceRoot?.appending(path: ".venv", directoryHint: .isDirectory)

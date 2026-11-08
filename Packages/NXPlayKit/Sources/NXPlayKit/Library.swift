@@ -38,6 +38,7 @@ public final class Library {
         static let remoteEnabled = "remoteEnabled"
         static let remoteToken = "remoteToken"
         static let deviceGames = "deviceGames"
+        static let nxnativeAndroid = "nxnativeAndroidPath"
     }
 
     /// How a game's players map to the controllers (nxnative's dm/host/front_mac.m): each controller a player of its
@@ -61,6 +62,10 @@ public final class Library {
     }
     public var nxnativePath: String { didSet { defaults.set(nxnativePath, forKey: Keys.nxnative) } }
     public var keysPath: String { didSet { defaults.set(keysPath, forKey: Keys.keys) } }
+    /// The nxnative-android checkout Install on Android builds with (Library+Android.swift).
+    public var nxnativeAndroidPath: String {
+        didSet { defaults.set(nxnativeAndroidPath, forKey: Keys.nxnativeAndroid) }
+    }
     /// A clone of the player's private repository that saves are backed up to while games play; empty for none.
     public var saveBackupPath: String {
         didSet { defaults.set(saveBackupPath, forKey: Keys.saveBackup) }
@@ -107,6 +112,9 @@ public final class Library {
     public internal(set) var teams: [AppleTeam] = []
     public internal(set) var devices: [Device] = []
     public private(set) var isLoadingDevices = false
+    /// The Android devices adb sees, for Install on Android (Library+Android.swift).
+    public internal(set) var androidDevices: [AndroidDevice] = []
+    public internal(set) var isLoadingAndroidDevices = false
 
     /// Settings › Devices › iPhone & iPad App: the server the iOS app installs games through (Library+Remote.swift).
     public var remoteEnabled: Bool {
@@ -252,6 +260,8 @@ public final class Library {
         }
         nxnativePath = defaults.string(forKey: Keys.nxnative) ?? AppHome.defaultNXNative
         keysPath = defaults.string(forKey: Keys.keys) ?? NSHomeDirectory() + "/.switch/prod.keys"
+        nxnativeAndroidPath =
+            defaults.string(forKey: Keys.nxnativeAndroid) ?? AppHome.defaultNXNativeAndroid
         saveBackupPath = defaults.string(forKey: Keys.saveBackup) ?? ""
         cloudSaves = defaults.string(forKey: Keys.cloudSaves) ?? ""
         controllerPlayers =
@@ -314,10 +324,11 @@ public final class Library {
         teams.first { $0.id == teamID } ?? teams.first { !$0.isFree } ?? teams.first
     }
 
-    /// Xcode's teams and the reachable devices; on launch, on activation and after an install.
+    /// Xcode's teams and the reachable devices, Android's too; on launch, on activation and after an install.
     public func refreshDevices() {
         guard !isScreenshot else { return }
         teams = AppleTeam.fromXcode()
+        refreshAndroidDevices()
         guard !isLoadingDevices else { return }
         isLoadingDevices = true
         Task {
@@ -796,6 +807,8 @@ public final class Library {
             if job.status == .succeeded, let id = job.game.titleID { remember([id], on: device.id) }
             refreshDevices()
         }
+        // the device's games now include this one: Play on Android
+        if case .android = job.kind { refreshAndroidDevices() }
         // a failure's reason is in its output: show it
         if case .failed = job.status {
             showsLog = true
@@ -903,7 +916,9 @@ public final class Library {
             problem = "The nxplay script is missing from the app bundle."
             return nil
         }
-        guard fm.fileExists(atPath: repo + "/scripts/build_ipa_from_nsp.py") else {
+        // Install on Android builds with nxnative-android's checkout instead (androidCommand)
+        let android: AndroidDevice? = if case .android(let device) = kind { device } else { nil }
+        guard android != nil || fm.fileExists(atPath: repo + "/scripts/build_ipa_from_nsp.py") else {
             problem =
                 "No nxnative checkout at \(repo). Open Setup to install it, or set its folder in Settings."
             return nil
@@ -920,6 +935,9 @@ public final class Library {
         let lang =
             (choices.removeValue(forKey: "DM_LANG") ?? GameLanguage.choose(language, for: game))
             .map { ["--lang", $0] } ?? []
+        if let android {
+            return androidCommand(game, on: android, script: script, keys: keys, lang: lang)
+        }
         var environment = NXPlayCommand.environment(
             nxnative: repo, keys: keys, venv: AppHome.venv.path)
         var arguments: [String]
@@ -954,6 +972,7 @@ public final class Library {
                 ]
             // a Personal Team cannot provision the Increased Memory Limit capability: build without it
             if team.isFree { environment["DM_ENTITLEMENTS"] = "" }
+        case .android: return nil  // androidCommand, above
         }
         // an nxplay option, before the game folder (a play can rebuild too)
         if allowOtherMetal { arguments.insert("--allow-other-metal", at: 0) }

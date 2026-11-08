@@ -71,6 +71,35 @@ struct GameActions: View {
                 Button("Look Again", systemImage: "arrow.clockwise") { library.refreshDevices() }
             }
             .disabled(busy || kept || game?.isExtracted != true || game?.canBuildIPA != true)
+            // nxnative-android builds in its own folder, so a kept build doesn't stop it; it reads NSPs and XCIs only
+            Menu("Install on Android", systemImage: "candybarphone") {
+                if library.androidDevices.isEmpty {
+                    Text(
+                        library.isLoadingAndroidDevices
+                            ? "Looking for devices…"
+                            : "No device: connect one with USB debugging on")
+                }
+                ForEach(library.androidDevices) { device in
+                    Button(
+                        device.name == device.model ? device.name : "\(device.name) · \(device.model)",
+                        systemImage: "candybarphone"
+                    ) {
+                        game.map { library.installOnAndroid($0, on: device) }
+                    }
+                }
+                Divider()
+                Button("Look Again", systemImage: "arrow.clockwise") { library.refreshDevices() }
+            }
+            .disabled(
+                busy || game?.canBuildFromFiles != true || game?.isNUP == true
+                    || game?.isDump == true)
+            if let game, case let devices = library.androidDevices(with: game), !devices.isEmpty {
+                Menu("Play on Android", systemImage: "play.circle") {
+                    ForEach(devices) { device in
+                        Button(device.name) { library.playOnAndroid(game, on: device) }
+                    }
+                }
+            }
             Button(game?.ipaURL == nil ? "Build IPA" : "Rebuild IPA", systemImage: "shippingbox") {
                 game.map(library.buildIPA)
             }

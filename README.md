@@ -5,6 +5,7 @@
 - A library of your games with their icons: extract them, play them on the Mac, rebuild them.
 - Console Mode for the couch: full screen, driven by a game controller.
 - Install a game on your iPhone or iPad through Xcode, or build an IPA to sideload.
+- Install a game on an Android handheld or phone (an Ayn Odin 2, say) through adb, built with [nxnative-android](https://github.com/RogelioLB/nxnative-android), a fork of nxnative with an Android port.
 - Copy saves between the Mac and a device, after seeing which one is newer, and back them up to your own private Git repository while you play.
 - Pull nxnative's latest fixes before a play and rebuild when they change something, after asking whether to update now or play the current build. Or keep a build that works as it is.
 
@@ -15,7 +16,7 @@
 - [Why](#why)
 - [Requirements](#requirements)
 - [Install](#install), or [from the source](#from-the-source)
-- [Using NX Play](#using-nx-play): [the Game menu](#the-game-menu), [iPhone and iPad](#iphone-and-ipad), [saves](#saves), [tools](#tools), [settings](#settings), [Console Mode](#console-mode)
+- [Using NX Play](#using-nx-play): [the Game menu](#the-game-menu), [iPhone and iPad](#iphone-and-ipad), [Android](#android), [saves](#saves), [tools](#tools), [settings](#settings), [Console Mode](#console-mode)
 - [Command line](#command-line)
 - [Controls](#controls)
 - [Troubleshooting](#troubleshooting)
@@ -101,12 +102,14 @@ Right-click a game for more, or use the **Game** menu:
 - **Keep This Build**: for a game that plays well. nxnative updates no longer rebuild it, and a lock badge marks it. While it's kept, Install on Device, Build IPA and Make Mac App are off, since they'd rewrite files the kept build runs. Rebuild still replaces it.
 - **Game Settings…** (⌥⌘,): the settings nxnative offers for the game, with the defaults it was tested with. Depending on the game these include frame rate, render scale, docked or handheld, upscaling, language, window or full screen, rumble and performance switches. The basic ones come first; the rest are under Advanced settings. Each one follows Settings › Games until you change it for the game. A changed value is tinted and has its own reset button, and **Use Global Settings** resets them all. They apply the next time the game starts, and the log lists them. The game's Mac app shares the game's own values: NX Play keeps them where nxnative's own settings window does.
 - **Install on Device**: builds the game with Xcode, signed with your team, then installs and starts it on a connected iPhone or iPad. The device must be paired with Xcode and in Developer Mode.
+- **Install on Android**: builds the game with nxnative-android in the game folder's `android` folder, then installs it and starts it on an Android device connected with USB debugging on. See [Android](#android).
+- **Play on Android**: starts the game on a device that already has it, without building or copying anything.
 - **Build IPA**: an unsigned IPA in the game folder, for AltStore, Sideloadly and the like.
 - **Make Mac App**: a standalone, double-clickable app of the game (nxnative's `--platform mac-app`) in the game folder, for the Dock or Launchpad. It's made of APFS clones of the extracted files, so it takes almost no space on the same volume. Once a game has its app, **Play** starts the app, so the Dock shows the game's own name and icon, with the game's save and cheats from its folder and NX Play's settings. When an nxnative update rebuilds the game, the app is packed again with it, which adds a couple of minutes to the rebuild, so Play keeps starting the app. When that can't happen (the game files were removed, or the packing failed), Play uses the build: an orange **App** badge and Console Mode's "App out of date" say so, and **Update Mac App** in the Game menu packs it again. Opened from Finder or the Dock, the app plays on from the same save too: NX Play points it there through the app's `env.txt` in `~/Library/Application Support/nxnative/<title ID>`. The exception is an app that already has a save of its own from before. That one keeps it, and while the two saves differ, **Play** asks which one to use: NX Play's, the app's, or the newer one. **Don't ask again** keeps the answer for the game; **Ask Again** in Game Settings undoes it. The log names the save each play uses.
 - **Transfer Saves**: compares the Mac's save with a device's, file by file, and copies one over the other. The replaced save is kept in `<title ID>_build/run/save-backups`.
 - **nxnative Notes…** (⌥⌘I): what nxnative says about the game: tested, in bring-up, or no profile (a badge on the artwork says the same), and the profile's commits since your build (a blue badge counts them).
 - **Show in Finder**, **Open Save Folder**, **Open Cheats Folder**, **Open Build Logs**.
-- **Remove Game…** (⌘⌫): deletes the game's files, build, IPAs and Mac app for good. Anything else in its folder stays. Its saves and cheats stay too, in the folder, unless you also remove the saves; put the game files back and it plays on from them. You confirm by typing the phrase it shows.
+- **Remove Game…** (⌘⌫): deletes the game's files, build, IPAs, Mac app and Android folder for good. Anything else in its folder stays. Its saves and cheats stay too, in the folder, unless you also remove the saves; put the game files back and it plays on from them. You confirm by typing the phrase it shows.
 
 ![Transfer Saves: the Mac's save is newer than the iPad's](docs/transfer-saves.webp)
 
@@ -137,6 +140,23 @@ Games installed with a Personal Team stop opening after 7 days, and with a paid 
 curl -H "Authorization: Bearer <code>" http://<mac>.local:47474/v1/games
 curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/games/<folder>/install?device=<udid>"
 ```
+
+### Android
+
+**Install on Android** builds a game with [nxnative-android](https://github.com/RogelioLB/nxnative-android), a fork of nxnative that adds an Android port with a Vulkan renderer (seedds/nxnative itself stays Apple-only). It installs the game on an arm64 device over adb, then starts it there. It's experimental, as the fork is: a game's notes in nxnative don't cover Android, and some games run slower than on a Mac. The fork's own script does the work (`scripts/build_android_from_nsp.py`):
+
+- **One app holds every game.** The app is `org.nxnative.android`. Its launcher lists each game on the device, in `Android/data/org.nxnative.android/files/games/<title ID>`. Every APK carries the host of each game built on this Mac (kept in `~/.local/share/nxnative/android`), so installing a second game keeps the first. An install is an update, so the saves on the device stay. Don't uninstall the app: that would delete them.
+- **The build has a folder of its own:** `<game folder>/android`, with links to the game files (no space taken), plus the fork's `<title ID>_build`. The fork builds from older nxnative code, so it must neither reuse nor rewrite the Mac build. A kept build doesn't stop an Android install. Only NSP, NSZ, XCI and XCZ files work there: no NUPs or dumps.
+- **Each install runs the whole build again.** Steps whose inputs haven't changed are reused, so after an update of either checkout only what changed is rebuilt. The first build of a game takes as long as a Mac build. Later ones take a few minutes, mostly copying to the device.
+- **Play on Android** starts a game the device already has: NX Play asks the device which games its app holds. Settings › Devices › Android shows the devices adb sees.
+
+To set it up:
+
+1. Install the Android SDK (Android Studio, or its command-line tools) with an NDK, CMake 3.22 and build-tools 36, plus a JDK (`brew install openjdk@21` works). NX Play looks for the SDK in `ANDROID_HOME`, else `~/Library/Android/sdk`, and for a JDK through `java_home`, else Homebrew's openjdk.
+2. Clone nxnative-android: `git clone https://github.com/RogelioLB/nxnative-android ~/Library/Application\ Support/NX\ Play/nxnative-android`. To build with your own branch, clone your fork anywhere and point Settings › Devices › Android at it. Before each install, nxplay pulls the checkout's upstream; on a branch without one, it stays on that code.
+3. On the device, turn on Developer options › USB debugging, connect it, and allow this Mac.
+
+The build log is in `<game folder>/android/<title ID>_build/logs`, and the game's log on the device is `Android/data/org.nxnative.android/files/log.txt` (`adb logcat -s nxnative`).
 
 ### Saves
 
@@ -176,7 +196,7 @@ Pick files one by one, a whole game, or a whole kind. Nothing is selected until 
 
 ### Settings
 
-Settings has a tab for each subject: **General** (the games folder, the keys file, the nxnative folder, the Metal compiler check, Setup), **Games** (the settings every game gets unless it has its own, and the controllers), **Saves** (the backup repository, cloud saves), **Devices** (the Apple team for device installs, and the [iPhone & iPad app](#iphone-and-ipad)) and **Updates**. **Game Controls** (in the menu bar, and the keyboard button in the toolbar) shows the keyboard controls. While builds run, the Dock icon shows their progress.
+Settings has a tab for each subject: **General** (the games folder, the keys file, the nxnative folder, the Metal compiler check, Setup), **Games** (the settings every game gets unless it has its own, and the controllers), **Saves** (the backup repository, cloud saves), **Devices** (the Apple team for device installs, the [iPhone & iPad app](#iphone-and-ipad), and the [Android](#android) checkout and devices) and **Updates**. **Game Controls** (in the menu bar, and the keyboard button in the toolbar) shows the keyboard controls. While builds run, the Dock icon shows their progress.
 
 <img src="docs/settings.webp" alt="NX Play's Settings" width="560">
 
@@ -201,6 +221,8 @@ Down (or a click on the game's name) opens the game's details: the banner and th
 ./nxplay --ipa ~/Games/MetroidDread        # build the iOS IPA into the game folder, to sideload
 ./nxplay --mac-app ~/Games/MetroidDread    # pack a standalone Mac app of the game into its folder
 ./nxplay --device <udid> ~/Games/MetroidDread --team-id <team>   # build with Xcode, install and start on a device
+./nxplay --android <serial> ~/Games/MetroidDread   # build with nxnative-android, install and start on an Android device
+./nxplay --build-only --android <serial> ~/Games/MetroidDread   # build the Android app and files, don't install
 ./nxplay --fps ~/Games/MetroidDread        # show the Metal performance HUD
 ./nxplay --fullscreen ~/Games/MetroidDread # start the game in full screen
 ./nxplay --lang ja ~/Games/MetroidDread    # play in another language (DM_LANG), no rebuild
@@ -210,13 +232,13 @@ DM_FPS_TARGET=30 ./nxplay ~/Games/MetroidDread   # any of the game's settings, f
 ./nxplay ~/Games/MetroidDread -l ja        # extra options go to build_ipa_from_nsp.py
 ```
 
-`xcrun devicectl list devices` lists the device UDIDs.
+`xcrun devicectl list devices` lists the device UDIDs, and `adb devices` the Android serials.
 
 Each run starts by updating nxnative and lists any new commits. A game is rebuilt when its Mac build was made with other nxnative code than the checkout has now, whichever run pulled the update. A kept build is the exception: NX Play's Keep This Build puts a `keep` file in `<title ID>_build`, and that build then plays as it is until an explicit `--rebuild`, while `--ipa`, `--mac-app` and `--device` refuse to run for it. Before a play, `NXPLAY_UPDATE` decides what happens to a game built with older code: `update` (the default) pulls and rebuilds, `current` plays the build as it is and leaves the checkout alone, and `ask` first shows what the update brings (the commit count, the game's own commits, whether every shader is translated again, how long the last update took) and asks. NX Play asks by default; Settings › General changes it. The `./nxnative` clone is only for following upstream: when upstream rewrites its history, nxplay follows it, so keep your own nxnative changes in another clone (`NXNATIVE=/path/to/it`).
 
 The run command is saved in `<game folder>/<title ID>_build/start_mac.sh`. It holds absolute paths, so after you move a game folder (or nxnative), the next run rewrites them to the new location.
 
-Environment variables: `NXNATIVE` (the nxnative checkout; default `./nxnative`, else `../nxnative`), `NX_KEYS` (default `~/.switch/prod.keys`), `NXPLAY_VENV` (default `./.venv`).
+Environment variables: `NXNATIVE` (the nxnative checkout; default `./nxnative`, else `../nxnative`), `NXNATIVE_ANDROID` (the nxnative-android checkout `--android` builds with; default `./nxnative-android`, else `../nxnative-android`), `ANDROID_HOME` (the Android SDK; default `~/Library/Android/sdk`), `NX_KEYS` (default `~/.switch/prod.keys`), `NXPLAY_VENV` (default `./.venv`).
 
 ## Controls
 
