@@ -135,7 +135,7 @@ if (( !unsigned )); then
   spctl --assess --type open --context context:primary-signature "$dmg"
   spctl --assess --type execute "$app"
 fi
-shasum -a 256 "$dmg" | tee "$dmg.sha256"
+(cd "$out" && shasum -a 256 "$(basename "$dmg")") | tee "$dmg.sha256"   # the file named as it is downloaded, so shasum -c checks it beside the DMG
 echo "  $dmg ($(du -h "$dmg" | cut -f1))"
 
 say "Publish"
