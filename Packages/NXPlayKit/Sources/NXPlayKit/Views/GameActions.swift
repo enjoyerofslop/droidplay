@@ -71,7 +71,7 @@ struct GameActions: View {
                 Button("Look Again", systemImage: "arrow.clockwise") { library.refreshDevices() }
             }
             .disabled(busy || kept || game?.isExtracted != true || game?.canBuildIPA != true)
-            // nxnative-android builds in its own folder, so a kept build doesn't stop it; it reads NSPs and XCIs only
+            // nxnative-android builds in its own folder, so a kept build doesn't stop it; it reads NSPs, XCIs and NUPs (a checkout without NUP support stops in nxplay), not dumps
             Menu("Install on Android", systemImage: "candybarphone") {
                 if library.androidDevices.isEmpty {
                     Text(
@@ -91,15 +91,13 @@ struct GameActions: View {
                 Button("Look Again", systemImage: "arrow.clockwise") { library.refreshDevices() }
             }
             .disabled(
-                busy || game?.canBuildFromFiles != true || game?.isNUP == true
-                    || game?.isDump == true)
+                busy || game?.canBuildFromFiles != true || game?.isDump == true)
             // the app and the game's files in a folder, to install on a device this Mac can't reach
             Button(game?.androidExportURL == nil ? "Build APK" : "Rebuild APK", systemImage: "shippingbox.fill") {
                 game.map(library.buildAPK)
             }
             .disabled(
-                busy || game?.canBuildFromFiles != true || game?.isNUP == true
-                    || game?.isDump == true)
+                busy || game?.canBuildFromFiles != true || game?.isDump == true)
             // the game as an Android app of its own, without the nxnative app: an APK, or one XAPK for an XAPK installer
             Menu("Build Game App", systemImage: "app.badge") {
                 Button("APK", systemImage: "app") { game.map { library.buildGameApp($0, as: .apk) } }
@@ -108,8 +106,7 @@ struct GameActions: View {
                 }
             }
             .disabled(
-                busy || game?.canBuildFromFiles != true || game?.isNUP == true
-                    || game?.isDump == true)
+                busy || game?.canBuildFromFiles != true || game?.isDump == true)
             if let game, case let devices = library.androidDevices(with: game), !devices.isEmpty {
                 Menu("Play on Android", systemImage: "play.circle") {
                     ForEach(devices) { device in

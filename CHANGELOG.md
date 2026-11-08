@@ -12,6 +12,8 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 
 - **Build Game App** makes a game an Android app of its own, with its name, icon and saves, opening straight into the game without the nxnative app. **APK** gives `<game name>.apk`, with the game data inside for a game under 2 GB; a bigger one gets `<game name>.romfs` too, which the app asks you to pick once and reads wherever it is on the device. **XAPK** gives one `<game name>.xapk` for an XAPK installer. It needs an nxnative-android checkout with `build_android_from_nsp.py --game-apk` (the `android/game-apk` branch). From the Terminal: `nxplay --game-apk` or `--game-xapk <game folder>`.
 
+- **Switch 2 games on Android:** Install on Android, Build APK and Build Game App take a game in a `.nup` file, with an nxnative-android checkout that reads one (the `android/upstream-sync` branch). NX Play says when the checkout can't. Dumps still need a Mac or an iPhone.
+
 ## 1.8.4 — 2026-11-07
 
 ### Added

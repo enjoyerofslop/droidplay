@@ -514,7 +514,7 @@ android_files() {
   done
   shopt -s nocasematch
   for f in "$game"/*; do
-    case "$f" in *.nsp | *.nsz | *.xci | *.xcz) ;; *) continue ;; esac
+    case "$f" in *.nsp | *.nsz | *.xci | *.xcz | *.nup) ;; *) continue ;; esac
     [[ -s "$f" ]] || continue
     n=$(( n + 1 ))
     to="$dir/$(basename "$f")"
@@ -656,7 +656,13 @@ if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
   android_tools
   adir="$game/android"
   if (( $(android_files "$adir") == 0 )); then
-    warn "nxplay: an Android build needs the game's NSP, NSZ, XCI or XCZ files in $game (a NUP or a dump isn't supported there)"
+    warn "nxplay: an Android build needs the game's NSP, NSZ, XCI, XCZ or NUP files in $game (a dump isn't supported there)"
+    exit 1
+  fi
+  # A NUP (a Switch 2 game) is read only by a checkout that has upstream nxnative's NUP support (build_android_from_nsp.py's
+  # scan, on the android/upstream-sync branch); an older one would stop on the folder with no NSPs in it
+  if compgen -G "$adir/*.[nN][uU][pP]" > /dev/null && ! grep -q "nup_file" "$repo/scripts/build_android_from_nsp.py"; then
+    warn "nxplay: the nxnative-android checkout at $repo can't read a NUP (its build_android_from_nsp.py has no NUP support): use a branch that has it, such as android/upstream-sync"
     exit 1
   fi
   # A game app (--game-apk, --game-xapk): nxnative-android's own --game-apk makes the app, the game data inside it, beside
