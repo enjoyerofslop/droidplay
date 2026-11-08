@@ -31,6 +31,8 @@ public enum GameScanner {
         let isDump = packages.isEmpty && GameDump.isDump(folder)
         let hasPackages = !packages.isEmpty || isDump
         let builds = entries.filter(isBuildFolder).map(Build.init(folder:))
+        let androidEntries = children(
+            of: folder.appending(path: androidFolderName, directoryHint: .isDirectory))
         // a build with nothing but its run folder holds the saves of a removed game (Remove Game keeps them): no game
         // until its files come back
         guard hasPackages || builds.contains(where: \.hasContent) else { return nil }
@@ -59,9 +61,8 @@ public enum GameScanner {
             .flatMap { isDirectory($0) ? $0 : nil },
             // nxnative's app: <game name>.app with its Mac host inside (not any app that happens to be there)
             macAppURL: newest(entries.filter(isMacApp)),
-            androidExportURL: newest(
-                children(of: folder.appending(path: androidFolderName, directoryHint: .isDirectory))
-                    .filter(isAndroidExport)),
+            androidExportURL: newest(androidEntries.filter(isAndroidExport)),
+            androidAppURL: newest(androidEntries.filter(isGameApp)),
             hasPackages: hasPackages,
             isNUP: nup != nil,
             isDump: isDump,
@@ -141,6 +142,11 @@ public enum GameScanner {
     static func isAndroidExport(_ url: URL) -> Bool {
         url.lastPathComponent.hasSuffix(" (Android)")
             && FileManager.default.fileExists(atPath: url.appending(path: "nxnative.apk").path)
+    }
+
+    /// Build Game App's app: an APK or XAPK file in the Android folder (the nxnative app's own APK is inside Build APK's export folder).
+    static func isGameApp(_ url: URL) -> Bool {
+        ["apk", "xapk"].contains(url.pathExtension.lowercased()) && !isDirectory(url)
     }
 
     /// nxnative's app: `<game name>.app` with its Mac host inside, not any app that happens to be there.

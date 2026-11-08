@@ -95,6 +95,8 @@ struct GameBadge: View {
             Badge(text: "Building IPA\(percent)", color: .blue)
         case (.running?, .apk?):
             Badge(text: "Building APK\(percent)", color: .blue)
+        case (.running?, .gameApp?):
+            Badge(text: "Building App\(percent)", color: .blue)
         case (.running?, .macApp?):
             Badge(text: "Making App\(percent)", color: .blue)
         case (.running?, .install?), (.running?, .android?):

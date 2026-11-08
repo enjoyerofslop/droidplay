@@ -17,6 +17,10 @@
 #   --apk          build for Android the same way, without a device, and export the app with the game's files for
 #                  installing on any device: <game folder>/android/<game name> (Android), with how to install it and an
 #                  adb install.sh
+#   --game-apk     build the game as an Android app of its own, to install anywhere without the nxnative app:
+#                  <game folder>/android/<game name>.apk, with its game data inside, or beside it as <game name>.romfs when
+#                  the game is over 2 GB (the app asks for that file once); needs an nxnative-android with --game-apk
+#   --game-xapk    the same app as one <game name>.xapk, the game data inside as its OBB file, for an XAPK installer
 #   --fps         Apple's Metal performance HUD over the game (DM_METAL_HUD=1): frame rate, frame and GPU time, memory
 #   --fullscreen   start the game's window in full screen (DM_FULLSCREEN=1); ⌃⌘F or the green button leave it
 #   --allow-other-metal  build shaders with this Mac's Metal compiler even when nxnative tested another one
@@ -63,7 +67,7 @@ else
 fi
 launcher_name=start_mac.sh
 
-rebuild=0 explicit_rebuild=0 fps=0 fullscreen=0 other_metal=() build_only=0 ipa=0 mac_app=0 lang="" device="" android="" apk=0 settings_only=0
+rebuild=0 explicit_rebuild=0 fps=0 fullscreen=0 other_metal=() build_only=0 ipa=0 mac_app=0 lang="" device="" android="" apk=0 game_app="" settings_only=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --rebuild) rebuild=1 explicit_rebuild=1; shift ;;
@@ -74,6 +78,8 @@ while [[ $# -gt 0 ]]; do
     --device) device="${2:-}"; shift $(( $# > 1 ? 2 : 1 )) ;;
     --android) android="${2:-}"; shift $(( $# > 1 ? 2 : 1 )) ;;
     --apk) apk=1; shift ;;
+    --game-apk) game_app=apk; shift ;;
+    --game-xapk) game_app=xapk; shift ;;
     --fps) fps=1; shift ;;
     --fullscreen) fullscreen=1; shift ;;
     --allow-other-metal) other_metal=(--allow-other-metal); shift ;;
@@ -95,15 +101,15 @@ if [[ -n "$android" && ! "$android" =~ ^[A-Za-z0-9._:-]+$ ]]; then
   exit 2
 fi
 if [[ $# -lt 1 ]]; then
-  echo "usage: $(basename "$0") [--rebuild] [--build-only] [--settings] [--ipa | --mac-app | --device <udid> | --android <serial> | --apk] [--fps] [--fullscreen] [--allow-other-metal] [--lang <code>] <game folder> [build_ipa_from_nsp.py options...]" >&2
+  echo "usage: $(basename "$0") [--rebuild] [--build-only] [--settings] [--ipa | --mac-app | --device <udid> | --android <serial> | --apk | --game-apk | --game-xapk] [--fps] [--fullscreen] [--allow-other-metal] [--lang <code>] <game folder> [build_ipa_from_nsp.py options...]" >&2
   exit 2
 fi
 game="$(cd "$1" && pwd)"; shift
 
-# --android and --apk build with nxnative-android, the fork that carries the Android port (seedds/nxnative stays
-# Apple-only): a checkout of its own, followed the way nxnative's is
+# --android, --apk and the game apps build with nxnative-android, the fork that carries the Android port (seedds/nxnative
+# stays Apple-only): a checkout of its own, followed the way nxnative's is
 repo_name=nxnative
-if [[ -n "$android" || $apk -eq 1 ]]; then
+if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
   repo_name=nxnative-android
   if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then repo="$NXNATIVE_ANDROID"
   elif [[ -d "$here/nxnative-android" ]]; then repo="$here/nxnative-android"
@@ -384,7 +390,7 @@ case "$update_mode" in
   update | ask | current) ;;
   *) warn "nxplay: NXPLAY_UPDATE is update, ask or current, not '$update_mode'"; exit 2 ;;
 esac
-if (( build_only || ipa || mac_app || explicit_rebuild )) || [[ -n "$device" || -n "$android" || $apk -eq 1 ]]; then update_mode=update; fi
+if (( build_only || ipa || mac_app || explicit_rebuild )) || [[ -n "$device" || -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then update_mode=update; fi
 if [[ "$update_mode" == ask ]]; then ask_update; fi
 # NX Play's answers come on stdin; the build and the game get none, as before there was a question
 if [[ "${NXPLAY_PROGRESS:-}" == json ]]; then exec < /dev/null; fi
@@ -646,12 +652,24 @@ EOF
 # there. --apk builds the same without a device (--no-push) and exports it (android_export). The script reuses each
 # step whose inputs haven't changed, so a build after either checkout moved rebuilds what changed and no more. Even
 # its --push-only reads the game files first, so a game whose files were removed can't be built or installed again.
-if [[ -n "$android" || $apk -eq 1 ]]; then
+if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
   android_tools
   adir="$game/android"
   if (( $(android_files "$adir") == 0 )); then
     warn "nxplay: an Android build needs the game's NSP, NSZ, XCI or XCZ files in $game (a NUP or a dump isn't supported there)"
     exit 1
+  fi
+  # A game app (--game-apk, --game-xapk): nxnative-android's own --game-apk makes the app, the game data inside it, beside
+  # it, or in the XAPK, in the Android folder, and leaves the nxnative app as it is. A checkout from before it says so.
+  if [[ -n "$game_app" ]]; then
+    if ! grep -q -- "--game-apk" "$repo/scripts/build_android_from_nsp.py"; then
+      warn "nxplay: the nxnative-android checkout at $repo can't make a game app (its build_android_from_nsp.py has no --game-apk): use a branch that has it, such as android/game-apk"
+      exit 1
+    fi
+    xapk=()
+    if [[ "$game_app" == xapk ]]; then xapk=(--xapk); fi
+    (cd "$repo" && python3 scripts/build_android_from_nsp.py "$adir" -k "$keys" --game-apk ${xapk[@]+"${xapk[@]}"} ${lang:+--language "$lang"} ${progress[@]+"${progress[@]}"} "$@")
+    exit
   fi
   target=(--serial "$android")
   if (( apk )); then target=(--no-push); fi

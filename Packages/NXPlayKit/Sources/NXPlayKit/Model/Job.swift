@@ -14,11 +14,13 @@ public final class Job: Identifiable {
         case android(AndroidDevice)
         /// The same build without a device, exported with the game's files for installing anywhere (nxplay --apk).
         case apk
+        /// The game as an Android app of its own, without the nxnative app (nxplay --game-apk, --game-xapk).
+        case gameApp(GameAppFormat)
 
         /// Builds with nxnative-android, in the game folder's android folder.
         public var buildsForAndroid: Bool {
             switch self {
-            case .android, .apk: true
+            case .android, .apk, .gameApp: true
             default: false
             }
         }
@@ -29,10 +31,14 @@ public final class Job: Identifiable {
             switch self {
             case .ipa, .macApp, .install: true
             // its own folder, <game folder>/android, with nxnative-android's code
-            case .extract, .rebuild, .play, .android, .apk: false
+            case .extract, .rebuild, .play, .android, .apk, .gameApp: false
             }
         }
     }
+
+    /// How Build Game App packs the game: an APK (the game data inside it, or beside it as `<name>.romfs` for a game over 2 GB),
+    /// or one XAPK with the game data as its OBB file, for an XAPK installer.
+    public enum GameAppFormat: String, Hashable, Sendable { case apk, xapk }
 
     public enum Status: Equatable, Sendable {
         case queued, running, succeeded

@@ -100,6 +100,16 @@ struct GameActions: View {
             .disabled(
                 busy || game?.canBuildFromFiles != true || game?.isNUP == true
                     || game?.isDump == true)
+            // the game as an Android app of its own, without the nxnative app: an APK, or one XAPK for an XAPK installer
+            Menu("Build Game App", systemImage: "app.badge") {
+                Button("APK", systemImage: "app") { game.map { library.buildGameApp($0, as: .apk) } }
+                Button("XAPK (one file, for an XAPK installer)", systemImage: "doc.zipper") {
+                    game.map { library.buildGameApp($0, as: .xapk) }
+                }
+            }
+            .disabled(
+                busy || game?.canBuildFromFiles != true || game?.isNUP == true
+                    || game?.isDump == true)
             if let game, case let devices = library.androidDevices(with: game), !devices.isEmpty {
                 Menu("Play on Android", systemImage: "play.circle") {
                     ForEach(devices) { device in
@@ -144,6 +154,11 @@ struct GameActions: View {
             if let ipa = game?.ipaURL {
                 Button("Show IPA in Finder", systemImage: "shippingbox") {
                     NSWorkspace.shared.activateFileViewerSelecting([ipa])
+                }
+            }
+            if let app = game?.androidAppURL {
+                Button("Show Game App in Finder", systemImage: "app.badge") {
+                    NSWorkspace.shared.activateFileViewerSelecting([app])
                 }
             }
             if let export = game?.androidExportURL {

@@ -804,6 +804,7 @@ public final class Library {
                 case .ipa: made?.ipaURL
                 case .macApp: made?.macAppURL
                 case .apk: made?.androidExportURL
+                case .gameApp: made?.androidAppURL
                 default: nil
                 }
         {
@@ -977,7 +978,7 @@ public final class Library {
                 ]
             // a Personal Team cannot provision the Increased Memory Limit capability: build without it
             if team.isFree { environment["DM_ENTITLEMENTS"] = "" }
-        case .android, .apk: return nil  // androidCommand, above
+        case .android, .apk, .gameApp: return nil  // androidCommand, above
         }
         // an nxplay option, before the game folder (a play can rebuild too)
         if allowOtherMetal { arguments.insert("--allow-other-metal", at: 0) }

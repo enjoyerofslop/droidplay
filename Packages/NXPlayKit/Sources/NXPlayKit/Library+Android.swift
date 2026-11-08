@@ -18,6 +18,9 @@ extension Library {
     /// Build APK: the app and the game's files in `<game folder>/android/<game name> (Android)`, to copy to any device.
     public func buildAPK(_ game: Game) { run(.apk, game) }
 
+    /// Build Game App: the game as an app of its own, `<game folder>/android/<game name>.apk` (with `.romfs` beside it for a big game) or `.xapk`.
+    public func buildGameApp(_ game: Game, as format: Job.GameAppFormat) { run(.gameApp(format), game) }
+
     /// The devices whose app has this game, which Play on Android can start it on.
     public func androidDevices(with game: Game) -> [AndroidDevice] {
         guard let id = game.titleID?.uppercased() else { return [] }
@@ -66,9 +69,15 @@ extension Library {
             environment: environment)
     }
 
-    /// `--android <serial>` installs on the device; `--apk` exports instead.
+    /// `--android <serial>` installs on the device; `--apk` exports the nxnative app with the game; `--game-apk` and `--game-xapk` make the game's own app.
     nonisolated static func androidArguments(_ kind: Job.Kind, lang: [String], folder: URL) -> [String] {
-        let target = if case .android(let device) = kind { ["--android", device.id] } else { ["--apk"] }
+        let target =
+            switch kind {
+            case .android(let device): ["--android", device.id]
+            case .gameApp(.apk): ["--game-apk"]
+            case .gameApp(.xapk): ["--game-xapk"]
+            default: ["--apk"]
+            }
         return target + lang + [folder.path]
     }
 }

@@ -30,6 +30,8 @@ public struct Game: Identifiable, Hashable, Sendable {
     public var macAppURL: URL? = nil
     /// Build APK's export, `<game folder>/android/<game name> (Android)`: the app and the game's files (nxplay --apk).
     public var androidExportURL: URL? = nil
+    /// Build Game App's app, the newest `<game name>.apk` or `.xapk` in `<game folder>/android` (nxplay --game-apk, --game-xapk).
+    public var androidAppURL: URL? = nil
     /// The game files are there to build from: NSPs, NSZs, XCIs, XCZs or a NUP, or a dump.
     public let hasPackages: Bool
     /// nxnative builds the game from one NUP file, as it can a Switch 2 game (GameNUP).

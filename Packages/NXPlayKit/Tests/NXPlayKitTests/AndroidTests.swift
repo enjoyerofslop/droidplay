@@ -40,18 +40,24 @@ import Testing
         #expect(
             Library.androidArguments(.apk, lang: [], folder: folder)
                 == ["--apk", "/Games/Brilliant Diamond"])
+        #expect(
+            Library.androidArguments(.gameApp(.apk), lang: ["--lang", "ja"], folder: folder)
+                == ["--game-apk", "--lang", "ja", "/Games/Brilliant Diamond"])
+        #expect(
+            Library.androidArguments(.gameApp(.xapk), lang: [], folder: folder)
+                == ["--game-xapk", "/Games/Brilliant Diamond"])
     }
 
     @Test func doesNotTouchTheMacBuild() {
         let odin = AndroidDevice(id: "4839ed0d", name: "Odin 2", model: "Odin2")
-        for kind in [Job.Kind.android(odin), .apk] {
+        for kind in [Job.Kind.android(odin), .apk, .gameApp(.apk), .gameApp(.xapk)] {
             #expect(kind.buildsForAndroid)
             #expect(!kind.rewritesTheMacBuild)
         }
         #expect(!Job.Kind.ipa.buildsForAndroid)
     }
 
-    @Test func findsTheExportedAPK() throws {
+    @Test func findsTheExportedAPKAndTheGameApp() throws {
         let folder = FileManager.default.temporaryDirectory.appending(
             path: "nxplay-apk-\(UUID().uuidString)/Game", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: folder.deletingLastPathComponent()) }
@@ -59,6 +65,7 @@ import Testing
             "Game [0100000011D90000][v0].nsp", "android/Game (Android)/nxnative.apk",
             // no app in it: not an export
             "android/Other (Android)/games/x",
+            "android/Game.apk", "android/Game.romfs",
         ] {
             let url = folder.appending(path: path)
             try FileManager.default.createDirectory(
@@ -70,6 +77,8 @@ import Testing
 
         #expect(game.androidExportURL?.lastPathComponent == "Game (Android)")
         #expect(game.androidExportURL?.deletingLastPathComponent().lastPathComponent == "android")
+        // the game's own app, not the nxnative app's APK inside the export folder
+        #expect(game.androidAppURL?.lastPathComponent == "Game.apk")
     }
 
     @MainActor @Test func playOnAndroidListsTheDevicesWithTheGame() throws {

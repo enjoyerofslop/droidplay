@@ -80,6 +80,7 @@ struct LogPanel: View {
             case .install(let device): "Install on \(device.name)"
             case .android(let device): "Install on \(device.name)"
             case .apk: "Build APK"
+            case .gameApp(let format): format == .xapk ? "Build Game XAPK" : "Build Game APK"
             }
         let state =
             switch job.status {

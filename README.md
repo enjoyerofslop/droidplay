@@ -105,6 +105,7 @@ Right-click a game for more, or use the **Game** menu:
 - **Install on Android**: builds the game with nxnative-android in the game folder's `android` folder, then installs it and starts it on an Android device connected with USB debugging on. See [Android](#android).
 - **Play on Android**: starts the game on a device that already has it, without building or copying anything.
 - **Build APK**: the same Android build without a device, exported with the game's files to install on any Android device. See [Android](#android).
+- **Build Game App** › **APK** or **XAPK**: the game as an Android app of its own, without the nxnative app, to install on any device. See [Android](#android).
 - **Build IPA**: an unsigned IPA in the game folder, for AltStore, Sideloadly and the like.
 - **Make Mac App**: a standalone, double-clickable app of the game (nxnative's `--platform mac-app`) in the game folder, for the Dock or Launchpad. It's made of APFS clones of the extracted files, so it takes almost no space on the same volume. Once a game has its app, **Play** starts the app, so the Dock shows the game's own name and icon, with the game's save and cheats from its folder and NX Play's settings. When an nxnative update rebuilds the game, the app is packed again with it, which adds a couple of minutes to the rebuild, so Play keeps starting the app. When that can't happen (the game files were removed, or the packing failed), Play uses the build: an orange **App** badge and Console Mode's "App out of date" say so, and **Update Mac App** in the Game menu packs it again. Opened from Finder or the Dock, the app plays on from the same save too: NX Play points it there through the app's `env.txt` in `~/Library/Application Support/nxnative/<title ID>`. The exception is an app that already has a save of its own from before. That one keeps it, and while the two saves differ, **Play** asks which one to use: NX Play's, the app's, or the newer one. **Don't ask again** keeps the answer for the game; **Ask Again** in Game Settings undoes it. The log names the save each play uses.
 - **Transfer Saves**: compares the Mac's save with a device's, file by file, and copies one over the other. The replaced save is kept in `<title ID>_build/run/save-backups`.
@@ -157,6 +158,11 @@ curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/game
   - `install.sh`, which installs the app and copies the game over adb from any Mac or Linux computer.
 
   Without adb: install the APK, open the app once, then copy `games/<title ID>` into `Android/data/org.nxnative.android/files/games/` over USB file transfer. A device that has nxnative built on another computer refuses the APK, as it's signed with this Mac's key (`~/.android/nxnative-debug.jks`). Uninstalling that copy first deletes its games and saves.
+- **Build Game App** makes the game an app of its own: its own name and icon on the device, and its own saves. It opens straight into the game, with no nxnative app and no game drawer, so several games install side by side. It needs an nxnative-android checkout with the game-app mode (`build_android_from_nsp.py --game-apk`, on the `android/game-apk` branch for now); NX Play says so otherwise. Two kinds, which can sit side by side in the game's `android` folder:
+  - **APK**: `<game name>.apk`. A game whose data fits under 2 GB is one file. A bigger game also gets `<game name>.romfs`, its data (an APFS clone, so it takes no space): copy both to the device, put the `.romfs` anywhere, even on an SD card, and the app asks you to pick it once when it first opens. It reads the file where it is.
+  - **XAPK**: `<game name>.xapk`, one file with the game data as the app's OBB data file, for an XAPK installer app on the device. It's a real copy of the game data, so it takes that much space on the Mac.
+
+  The first start unpacks the game's code and shaders from the APK, which takes a minute. An APK alone can't hold more than 2 GB, so all but small games need the `.romfs` or the XAPK.
 
 To set it up:
 
@@ -231,6 +237,8 @@ Down (or a click on the game's name) opens the game's details: the banner and th
 ./nxplay --device <udid> ~/Games/MetroidDread --team-id <team>   # build with Xcode, install and start on a device
 ./nxplay --android <serial> ~/Games/MetroidDread   # build with nxnative-android, install and start on an Android device
 ./nxplay --apk ~/Games/MetroidDread       # build for Android and export the app with the game's files, to install anywhere
+./nxplay --game-apk ~/Games/MetroidDread  # the game as an Android app of its own (and its .romfs when it's over 2 GB)
+./nxplay --game-xapk ~/Games/MetroidDread # the same app as one .xapk, for an XAPK installer
 ./nxplay --fps ~/Games/MetroidDread        # show the Metal performance HUD
 ./nxplay --fullscreen ~/Games/MetroidDread # start the game in full screen
 ./nxplay --lang ja ~/Games/MetroidDread    # play in another language (DM_LANG), no rebuild

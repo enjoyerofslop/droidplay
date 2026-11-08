@@ -10,6 +10,8 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 
 - **Build APK** makes the same Android build without a device. It exports the app and the game's files to `<game folder>/android/<game name> (Android)`, to install on any Android device: with the `install.sh` beside them (adb, from a Mac or Linux computer), or by hand as `How to install.txt` explains. From the Terminal: `nxplay --apk <game folder>`.
 
+- **Build Game App** makes a game an Android app of its own, with its name, icon and saves, opening straight into the game without the nxnative app. **APK** gives `<game name>.apk`, with the game data inside for a game under 2 GB; a bigger one gets `<game name>.romfs` too, which the app asks you to pick once and reads wherever it is on the device. **XAPK** gives one `<game name>.xapk` for an XAPK installer. It needs an nxnative-android checkout with `build_android_from_nsp.py --game-apk` (the `android/game-apk` branch). From the Terminal: `nxplay --game-apk` or `--game-xapk <game folder>`.
+
 ## 1.8.4 — 2026-11-07
 
 ### Added
