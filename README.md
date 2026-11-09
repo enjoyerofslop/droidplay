@@ -55,11 +55,12 @@ DroidPlay takes the other route: one app for all your games, everything portable
    - downloads Xcode's Metal Toolchain, which every build needs to compile the game's shaders;
    - installs the tools with Homebrew (uv, xcodegen, zstd, glslang, the .NET SDK), asking for your password for the .NET SDK;
    - installs Python and nxnative's packages with [uv](https://docs.astral.sh/uv/), leaving any other Python alone;
-   - clones nxnative, and droidnative for Android.
+   - clones nxnative, and droidnative for Android;
+   - installs what Android builds need: a JDK and the Android SDK's command-line tools with Homebrew (`Brewfile.android`), each only when the Mac has none (a JDK 17 or newer, Android Studio's included), then the SDK's NDK, CMake, build-tools, an Android platform and platform-tools into `~/Library/Android/sdk`, where Android Studio keeps it: about 3 GB. Installing them means accepting Google's [Android SDK License](https://developer.android.com/studio/terms), so Setup asks you first, unless it was accepted in that SDK already.
 
-Everything except Homebrew's tools goes into one folder, `~/Library/Application Support/DroidPlay` (Setup's **Open Folder**).
+Everything except Homebrew's tools and the Android SDK goes into one folder, `~/Library/Application Support/DroidPlay` (Setup's **Open Folder**).
 
-**DroidPlay › Uninstall DroidPlay…** removes it again: its folder, settings, caches and window state, its Dock icon if you kept it there, and the app, which goes to the Trash. It can also remove the Homebrew tools Setup installed. It leaves your games folder (the games, their builds and their saves), `prod.keys`, the save backup repository and Homebrew itself.
+**DroidPlay › Uninstall DroidPlay…** removes it again: its folder, settings, caches and window state, its Dock icon if you kept it there, and the app, which goes to the Trash. It can also remove the Homebrew tools Setup installed. It leaves your games folder (the games, their builds and their saves), `prod.keys`, the save backup repository, Homebrew itself and the Android SDK, which Android Studio may use too.
 
 A signed release of DroidPlay updates itself (a pre-release doesn't). It checks GitHub for a new release at launch and once a day (or now, with DroidPlay › Check for Updates…), and downloads it, verifying its checksum, signature and notarization. The update installs when you quit, or now with **Restart to Update**. **What's New** beside it lists what changed since your version; Help › DroidPlay Changelog has every release. DroidPlay never interrupts a game or a build to ask. A banner above the library, or a pill in Console Mode's top bar, says an update is ready. In Console Mode, Y (or U) shows what's new. If DroidPlay can't update itself because it runs from the DMG or from Downloads, the library asks you to move it into Applications.
 
@@ -73,7 +74,7 @@ cd droidplay
 bin/setup
 ```
 
-`bin/setup` is the same script Setup runs, for a checkout: it also installs the tools in `mise.toml` if you use [mise](https://mise.jdx.dev), puts the Python packages into `.venv` and nxnative into `./nxnative` in the checkout, and builds DroidPlay into `/Applications`. A build from the checkout keeps using those. `bin/setup --check` reports what is missing without changing anything; `bin/setup --no-app` skips building the app.
+`bin/setup` is the same script Setup runs, for a checkout: it also installs the tools in `mise.toml` if you use [mise](https://mise.jdx.dev), puts the Python packages into `.venv` and nxnative into `./nxnative` in the checkout, installs the Android SDK into `ANDROID_HOME` (default `~/Library/Android/sdk`), where sdkmanager asks you to accept its license in the terminal, and builds DroidPlay into `/Applications`. A build from the checkout keeps using those. `bin/setup --check` reports what is missing without changing anything; `bin/setup --no-app` skips building the app.
 
 ## Using DroidPlay
 
@@ -172,7 +173,7 @@ curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/game
 
 To set it up:
 
-1. Install the Android SDK (Android Studio, or its command-line tools) with an NDK, CMake 3.22 and build-tools 36, plus a JDK (`brew install openjdk@21` works). DroidPlay looks for the SDK in `ANDROID_HOME`, else `~/Library/Android/sdk`, and for a JDK through `java_home`, else Homebrew's openjdk.
+1. Setup installs a JDK and the Android SDK with what the build needs (the NDK, CMake 3.22, build-tools 36, android-35 and platform-tools) in `~/Library/Android/sdk`, so an SDK Android Studio installed there is used and topped up. nxplay in Terminal follows `ANDROID_HOME` when it's set. For a JDK it takes `JAVA_HOME`, else one `java_home` lists (17 or newer), else Homebrew's openjdk, else Android Studio's.
 2. Setup clones droidnative into `~/Library/Application Support/DroidPlay/droidnative` (`bin/setup`: `./droidnative` in the checkout), or clone it yourself: `git clone https://github.com/enjoyerofslop/droidnative`. To build with your own branch, clone your fork anywhere and point Settings › Devices › Android at it. Before each install, nxplay pulls the checkout's upstream; on a branch without one, it stays on that code.
 3. On the device, turn on Developer options › USB debugging, connect it, and allow this Mac.
 

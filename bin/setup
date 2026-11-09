@@ -2,7 +2,9 @@
 # Set up DroidPlay on this Mac; safe to run again. Checks the Mac and Xcode (downloading its Metal
 # Toolchain, which the shader builds need, when missing), installs the tools
 # (Homebrew, Brewfile; mise.toml too when mise is there), the Python packages (uv, into .venv), clones
-# nxnative into ./nxnative and droidnative (its Android port) into ./droidnative, then builds DroidPlay and installs it into /Applications.
+# nxnative into ./nxnative and droidnative (its Android port) into ./droidnative, installs what Android builds need (a JDK and
+# sdkmanager from Homebrew, Brewfile.android; the SDK's NDK, CMake, build-tools and platform-tools into ANDROID_HOME, else
+# ~/Library/Android/sdk), then builds DroidPlay and installs it into /Applications.
 #
 # usage: bin/setup [--check] [--no-app]
 #   --check   only report what is missing; change nothing
@@ -14,6 +16,8 @@
 #   NXPLAY_VENV     the Python environment (default: .venv in the project folder)
 #   NXNATIVE        the nxnative checkout (default: ./nxnative, else ../nxnative)
 #   SUDO_ASKPASS    a password prompt: the .NET SDK's installer and Xcode's first launch then run without a terminal
+#   NXPLAY_ANDROID_LICENSES=accept  the player accepted the Android SDK License in DroidPlay: sdkmanager installs without asking
+#   NXNATIVE_ANDROID  the droidnative checkout; ANDROID_HOME  the Android SDK (default ~/Library/Android/sdk)
 set -euo pipefail
 # the checkout keeps the Brewfile above bin/; the app's bundled copy (Resources/Setup) keeps it beside the script
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -131,8 +135,8 @@ if [[ -f "$repo/scripts/build_ipa_from_nsp.py" ]]; then
   fi
 fi
 
-# droidnative, for Install on Android and Build Game App: nxnative with its Android port, a checkout beside nxnative. Optional, so a missing one only
-# warns; a checkout set up before the rename keeps its nxnative-android folder
+# droidnative, for Install on Android and Build Game App: nxnative with its Android port, a checkout beside nxnative. A missing one is a ✗ like
+# nxnative, so Install Missing clones it; a checkout set up before the rename keeps its nxnative-android folder
 section "droidnative"
 if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then arepo="$NXNATIVE_ANDROID"
 elif (( app_run )); then arepo="$NXPLAY_HOME/droidnative"   # never beside this script: run from the app, that is inside the app bundle
@@ -141,10 +145,96 @@ elif [[ -d nxnative-android ]]; then arepo="nxnative-android"
 elif [[ -d ../droidnative ]]; then arepo="../droidnative"
 else arepo="droidnative"; fi
 if [[ ! -f "$arepo/scripts/build_android_from_nsp.py" ]]; then
-  if (( check )); then warn "not cloned at $arepo (Install on Android needs it): git clone https://github.com/enjoyerofslop/droidnative.git '$arepo'"
+  if (( check )); then fail "not cloned at $arepo (Install on Android needs it): git clone https://github.com/enjoyerofslop/droidnative.git '$arepo'"
   else step "cloned into $arepo" "git clone failed" git clone --quiet https://github.com/enjoyerofslop/droidnative.git "$arepo"; fi
 fi
 if [[ -f "$arepo/scripts/build_android_from_nsp.py" ]]; then ok "$(cd "$arepo" && pwd) ($(git -C "$arepo" log -1 --format='%h, %cr'))"; fi
+
+# What droidnative's packer needs (build_android_from_nsp.py --check): a JDK 17 or newer (javac and keytool build and sign the app; the SDK's
+# own tools need 17 to run), the SDK's command-line tools for sdkmanager, and the SDK packages below. The JDK and the command-line tools come
+# from Homebrew (Brewfile.android, which Uninstall reads too); the packages go into ANDROID_HOME, else ~/Library/Android/sdk, Android
+# Studio's place, where nxplay and DroidPlay look for adb. sdkmanager installs a package only once its license is accepted, and that is the
+# player's to accept: in Terminal sdkmanager asks; DroidPlay asks in its own window, then runs this with NXPLAY_ANDROID_LICENSES=accept.
+section "Android"
+android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
+android_packages=("platform-tools" "platforms;android-35" "build-tools;36.0.0" "ndk;28.2.13676358" "cmake;3.22.1")
+android_has() {   # the file each package installs that the build runs or reads
+  case "$1" in
+    platform-tools) [[ -x "$android_sdk/platform-tools/adb" ]] ;;
+    platforms\;*) [[ -f "$android_sdk/platforms/${1#*;}/android.jar" ]] ;;
+    build-tools\;*) [[ -x "$android_sdk/build-tools/${1#*;}/aapt2" ]] ;;
+    ndk\;*) [[ -f "$android_sdk/ndk/${1#*;}/build/cmake/android.toolchain.cmake" ]] ;;
+    cmake\;*) [[ -x "$android_sdk/cmake/${1#*;}/bin/cmake" ]] ;;
+    *) return 1 ;;
+  esac
+}
+# the same places nxplay's android_tools looks, in its order: Homebrew's openjdk is keg-only and Android Studio's JBR isn't registered with java_home
+find_jdk() {
+  local j v
+  for j in "${JAVA_HOME:-}" "$(/usr/libexec/java_home -v 17+ 2> /dev/null || true)" \
+      /opt/homebrew/opt/openjdk{@21,@25,@17,}/libexec/openjdk.jdk/Contents/Home /usr/local/opt/openjdk{@21,@25,@17,}/libexec/openjdk.jdk/Contents/Home \
+      "/Applications/Android Studio.app/Contents/jbr/Contents/Home"; do
+    [[ -n "$j" && -x "$j/bin/javac" && -x "$j/bin/keytool" ]] || continue
+    v="$(sed -n 's/^JAVA_VERSION="\([0-9]*\).*/\1/p' "$j/release" 2> /dev/null)"
+    if (( ${v:-0} >= 17 )); then echo "$j"; return 0; fi
+  done
+  return 1
+}
+find_sdkmanager() {
+  local s
+  for s in "$android_sdk/cmdline-tools/latest/bin/sdkmanager" /opt/homebrew/bin/sdkmanager /usr/local/bin/sdkmanager; do
+    if [[ -x "$s" ]]; then echo "$s"; return 0; fi
+  done
+  return 1
+}
+jdk="$(find_jdk || true)"
+if [[ -z "$jdk" ]] && (( !check )) && command -v brew > /dev/null; then
+  brew install --quiet openjdk@21 || true
+  jdk="$(find_jdk || true)"
+fi
+if [[ -n "$jdk" ]]; then ok "JDK $(sed -n 's/^JAVA_VERSION="\(.*\)"/\1/p' "$jdk/release") ($jdk)"
+else fail "no JDK 17 or newer (javac and keytool build and sign the Android app): brew install openjdk@21"; fi
+sdkmanager="$(find_sdkmanager || true)"
+if [[ -z "$sdkmanager" ]] && (( !check )) && command -v brew > /dev/null; then
+  brew install --quiet --cask android-commandlinetools || true
+  sdkmanager="$(find_sdkmanager || true)"
+fi
+if [[ -n "$sdkmanager" ]]; then ok "Android command-line tools ($sdkmanager)"
+else fail "no Android command-line tools (sdkmanager installs the SDK): brew install --cask android-commandlinetools"; fi
+android_missing() { local p; for p in "${android_packages[@]}"; do android_has "$p" || echo "$p"; done; }
+missing_packages=()
+while IFS= read -r p; do missing_packages+=("$p"); done < <(android_missing)
+# The license these packages come under, accepted before in this SDK (Android Studio, or an earlier setup) when its file is there; DroidPlay
+# then has nothing to ask. A license sdkmanager has updated since asks again, and the line that reports it names the license, so DroidPlay asks.
+accepted=0
+if [[ "${NXPLAY_ANDROID_LICENSES:-}" == accept ]]; then accepted=1; fi
+if [[ -f "$android_sdk/licenses/android-sdk-license" ]]; then sdk_licensed=1; else sdk_licensed=0; fi
+license_note="installing them accepts the Android SDK License: DroidPlay's Setup asks first, or run bin/setup in Terminal"
+# yes answers each license sdkmanager shows for the packages it installs: only once the player accepted them in DroidPlay. Otherwise sdkmanager
+# asks in Terminal, and without one finds no answer, so a package whose license isn't accepted yet stays out
+sdk_install() {
+  if (( accepted )); then
+    { yes 2> /dev/null || true; } | JAVA_HOME="$jdk" "$sdkmanager" --sdk_root="$android_sdk" --install "$@"
+  else JAVA_HOME="$jdk" "$sdkmanager" --sdk_root="$android_sdk" --install "$@"; fi
+}
+if (( ${#missing_packages[@]} == 0 )); then
+  ok "Android SDK at $android_sdk: ${android_packages[*]}"
+elif (( check )); then
+  if (( sdk_licensed )); then fail "Android SDK packages missing at $android_sdk: ${missing_packages[*]}"
+  else fail "Android SDK packages missing at $android_sdk: ${missing_packages[*]} ($license_note)"; fi
+elif [[ -z "$jdk" || -z "$sdkmanager" ]]; then
+  fail "Android SDK packages not installed at $android_sdk (${missing_packages[*]}): they need the JDK and the command-line tools above"
+elif (( !accepted && !sdk_licensed )) && [[ ! -t 0 ]]; then
+  fail "Android SDK packages missing at $android_sdk: ${missing_packages[*]} ($license_note)"
+else
+  mkdir -p "$android_sdk"
+  sdk_install "${missing_packages[@]}" || true
+  still=()
+  while IFS= read -r p; do still+=("$p"); done < <(android_missing)
+  if (( ${#still[@]} == 0 )); then ok "Android SDK at $android_sdk: ${android_packages[*]} (installed ${missing_packages[*]})"
+  elif (( !accepted )) && [[ ! -t 0 ]]; then fail "Android SDK packages did not install at $android_sdk: ${still[*]} (if sdkmanager wanted a license accepted, $license_note)"
+  else fail "Android SDK packages did not install at $android_sdk: ${still[*]}: $sdkmanager --sdk_root='$android_sdk' --install ${still[*]}"; fi
+fi
 
 section "Keys"
 keys="${NX_KEYS:-$HOME/.switch/prod.keys}"

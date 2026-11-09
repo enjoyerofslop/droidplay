@@ -3,8 +3,9 @@ import Observation
 
 /// Settings › Setup: runs the bundled bin/setup (AppHome.setupProject), the same script a developer runs from the
 /// checkout, to check what the builds need and install what's missing. Homebrew is the one prerequisite the player
-/// installs; Homebrew's tools, the .NET SDK, Python with nxnative's packages and nxnative itself come from here, all
-/// but Homebrew's into AppHome.folder. The script's ✓ ! ✗ lines become the rows; the rest is the log.
+/// installs; Homebrew's tools, the .NET SDK, Python with nxnative's packages, nxnative and droidnative, and what
+/// Android builds need (a JDK, sdkmanager and the Android SDK's packages) come from here, all but Homebrew's and the
+/// Android SDK's into AppHome.folder. The script's ✓ ! ✗ lines become the rows; the rest is the log.
 @MainActor @Observable
 public final class Setup {
     public struct Item: Identifiable, Equatable, Sendable {
@@ -27,6 +28,11 @@ public final class Setup {
     public var homebrewMissing: Bool {
         missing.contains { $0.text.hasPrefix("Homebrew is not installed") }
     }
+    /// Android SDK packages to install whose license nobody has accepted in that SDK yet: sdkmanager won't install
+    /// them until someone does, and that is the player's to do, so Install Missing asks first (SetupView).
+    public var needsAndroidLicense: Bool {
+        missing.contains { $0.section == "Android" && $0.text.contains("Android SDK License") }
+    }
 
     @ObservationIgnored private var process: Process?
     @ObservationIgnored private var ansi = ANSIParser()
@@ -47,14 +53,18 @@ public final class Setup {
     }
 
     public func check() { run(install: false) }
-    public func install() { run(install: true) }
+    /// acceptingAndroidLicense: the player accepted the Android SDK License (SetupView's alert), so bin/setup lets
+    /// sdkmanager install the packages under it (NXPLAY_ANDROID_LICENSES=accept). Never set without asking.
+    public func install(acceptingAndroidLicense: Bool = false) {
+        run(install: true, acceptingAndroidLicense: acceptingAndroidLicense)
+    }
 
     public func stop() {
         guard let process, process.isRunning else { return }
         kill(-process.processIdentifier, SIGINT)
     }
 
-    private func run(install: Bool) {
+    private func run(install: Bool, acceptingAndroidLicense: Bool = false) {
         guard phase == .idle else { return }
         guard let script else {
             log.append(["setup: the setup script is missing from the app bundle"])
@@ -69,7 +79,9 @@ public final class Setup {
         let developer = AppHome.sourceRoot != nil
         process.arguments =
             [script.path] + (install ? [] : ["--check"]) + (developer ? ["--no-app"] : [])
-        process.environment = environment()
+        var env = environment()
+        if acceptingAndroidLicense { env["NXPLAY_ANDROID_LICENSES"] = "accept" }
+        process.environment = env
         process.standardInput = FileHandle.nullDevice
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -126,7 +138,8 @@ struct SetupParser {
     private var section = ""
 
     static let sections: Set<String> = [
-        "Mac", "Xcode", "Tools", "Python (.venv)", "nxnative", "Keys", "DroidPlay",
+        "Mac", "Xcode", "Tools", "Python (.venv)", "nxnative", "droidnative", "Android", "Keys",
+        "DroidPlay",
     ]
 
     mutating func read(_ line: String) {

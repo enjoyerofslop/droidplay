@@ -16,7 +16,7 @@ public struct SetupView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Setup").font(.title2.bold())
             Text(
-                "Switch games build with Xcode, a few Homebrew tools, Python and nxnative. DroidPlay installs all but Xcode and Homebrew itself, and keeps what it installs in one folder."
+                "Switch games build with Xcode, a few Homebrew tools, Python and nxnative; for Android, with droidnative, a JDK and the Android SDK. DroidPlay installs all but Xcode and Homebrew itself, and keeps what it installs in one folder, except the Android SDK, which goes where Android Studio keeps it."
             )
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -48,6 +48,14 @@ public struct SetupView: View {
     }
 
     @State private var logID = UUID()
+    @State private var asksAndroidLicense = false
+    static let androidLicense = URL(string: "https://developer.android.com/studio/terms")!
+
+    private func install(_ setup: Setup, acceptingAndroidLicense: Bool = false) {
+        showsLog = true
+        logID = UUID()
+        setup.install(acceptingAndroidLicense: acceptingAndroidLicense)
+    }
 
     @ViewBuilder private func footer(_ setup: Setup) -> some View {
         HStack {
@@ -67,13 +75,21 @@ public struct SetupView: View {
             case .idle:
                 Button("Check Again") { setup.check() }
                 Button("Install Missing") {
-                    showsLog = true
-                    logID = UUID()
-                    setup.install()
+                    if setup.needsAndroidLicense { asksAndroidLicense = true } else { install(setup) }
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(setup.missing.isEmpty || setup.homebrewMissing)
             }
+        }
+        // sdkmanager installs the Android SDK's packages only under a license someone accepted; the player does, here
+        .alert("Install the Android SDK?", isPresented: $asksAndroidLicense) {
+            Button("Accept and Install") { install(setup, acceptingAndroidLicense: true) }
+            Button("Read the License") { NSWorkspace.shared.open(Self.androidLicense) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(
+                "Install on Android needs Google's Android SDK: the NDK, CMake, build-tools, an Android platform and platform-tools, about 3 GB in ~/Library/Android/sdk. Installing them means you accept the Android Software Development Kit License Agreement."
+            )
         }
     }
 }
