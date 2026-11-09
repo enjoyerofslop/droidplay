@@ -4,6 +4,8 @@ User-visible changes to DroidPlay, `nxplay` and the setup. The format follows [K
 
 ## Unreleased
 
+## 0.2.2 — 2026-11-09
+
 ### Changed
 
 - **droidnative is now DroidPlay Core**, at [enjoyerofslop/droidplay-core](https://github.com/enjoyerofslop/droidplay-core): it was renamed so it isn't mistaken for [DroidNative](https://github.com/DroidNative/DroidNativeApp), which runs Linux desktop apps on Android. Setup, Settings and the messages say DroidPlay Core, and Setup clones it into `~/Library/Application Support/DroidPlay/droidplay-core`. A checkout cloned before, in a `droidnative` folder, is still found and keeps working: GitHub sends the old address on to the new one.
