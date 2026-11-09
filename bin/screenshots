@@ -19,7 +19,7 @@ command -v cwebp > /dev/null || { echo "bin/screenshots: cwebp is missing: brew 
 if command -v mise > /dev/null; then mise exec -- xcodegen generate --quiet; else xcodegen generate --quiet; fi
 xcodebuild -project NXPlay.xcodeproj -scheme NXPlay -configuration Debug -destination "platform=macOS,arch=$(uname -m)" \
   -derivedDataPath build/screenshots -quiet build
-app="build/screenshots/Build/Products/Debug/NX Play.app/Contents/MacOS/NX Play"
+app="build/screenshots/Build/Products/Debug/DroidPlay.app/Contents/MacOS/DroidPlay"
 work="$PWD/build/screenshots/png"
 mkdir -p "$work" docs
 
