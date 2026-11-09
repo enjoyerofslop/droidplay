@@ -15,7 +15,7 @@ struct UpdateCard: View {
                 .onTapGesture { library.showsUpdate = false }
             VStack(alignment: .leading, spacing: 24) {
                 HStack(spacing: 14) {
-                    Logo().frame(height: 40)
+                    Logo().frame(height: 56)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("DroidPlay \(notice.version)").font(.largeTitle.bold())
                         Text(Self.subtitle(notice, library: library))

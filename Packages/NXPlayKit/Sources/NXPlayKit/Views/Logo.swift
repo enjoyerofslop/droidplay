@@ -1,17 +1,33 @@
 import SwiftUI
 
-/// DroidPlay's logo: the app icon's artwork without its background (App/AppIcon.icon/Assets: plate.svg, joycons.svg,
-/// play.svg), in the SVGs' own coordinates, cropped to the controller (x 255–769, y 322–702). Its colors are the SVGs'
-/// untagged ones, which the icon reads as Display P3.
+/// DroidPlay's logo: the app icon as App/AppIcon.icon draws it, flat (no glass). Its light green tile tells it apart
+/// from NX Play's logo, whose controller is the same: the bare artwork, which this drew before, read as NX Play's.
+/// The tile is icon.json's fill; the artwork is the SVGs' (Assets: plate.svg, joycons.svg, play.svg), in their own
+/// 1024-point canvas, scaled about its center as they scale it. Colors are the SVGs' untagged ones and the fill's, which
+/// the icon reads as Display P3.
 struct Logo: View {
     var body: some View {
         Canvas { context, size in
-            let scale = min(size.width / Self.bounds.width, size.height / Self.bounds.height)
-            context.translateBy(
-                x: (size.width - Self.bounds.width * scale) / 2,
-                y: (size.height - Self.bounds.height * scale) / 2)
-            context.scaleBy(x: scale, y: scale)
-            context.translateBy(x: -Self.bounds.minX, y: -Self.bounds.minY)
+            let side = min(size.width, size.height)
+            context.translateBy(x: (size.width - side) / 2, y: (size.height - side) / 2)
+            context.scaleBy(x: side / Self.canvas, y: side / Self.canvas)
+
+            // the tile: Big Sur's rounded square, icon.json's gradient from top to bottom
+            let tile = RoundedRectangle(cornerRadius: Self.canvas * 0.2237, style: .continuous)
+                .path(in: CGRect(x: 0, y: 0, width: Self.canvas, height: Self.canvas))
+            context.fill(
+                tile,
+                with: .linearGradient(
+                    Gradient(colors: [
+                        Color(.displayP3, red: 0.62, green: 0.91, blue: 0.68),
+                        Color(.displayP3, red: 0.28, green: 0.73, blue: 0.46),
+                    ]),
+                    startPoint: .zero, endPoint: CGPoint(x: 0, y: Self.canvas)))
+
+            // the SVGs' own transform: translate(512 512) scale(1.5161) translate(-512 -512)
+            context.translateBy(x: Self.canvas / 2, y: Self.canvas / 2)
+            context.scaleBy(x: 1.5161, y: 1.5161)
+            context.translateBy(x: -Self.canvas / 2, y: -Self.canvas / 2)
 
             // the plate between the Joy-Cons, under their inner edges
             let plate = RoundedRectangle(cornerRadius: 26).path(
@@ -53,11 +69,12 @@ struct Logo: View {
             context.stroke(
                 play, with: .color(.white), style: StrokeStyle(lineWidth: 26, lineJoin: .round))
         }
-        .aspectRatio(Self.bounds.width / Self.bounds.height, contentMode: .fit)
+        .aspectRatio(1, contentMode: .fit)
         .accessibilityHidden(true)
     }
 
-    static let bounds = CGRect(x: 255, y: 322, width: 514, height: 380)
+    /// The icon's canvas, in the SVGs' points.
+    static let canvas = 1024.0
 
     private static func circle(_ x: Double, _ y: Double, _ r: Double) -> Path {
         Path(ellipseIn: CGRect(x: x - r, y: y - r, width: 2 * r, height: 2 * r))
