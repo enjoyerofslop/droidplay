@@ -327,3 +327,5 @@ To work in Xcode, run `xcodegen generate` (or `mise run generate`) and open `NXP
 ## License
 
 MIT, see [LICENSE](LICENSE). nxnative has its own license.
+
+<!-- CI test: a text-only change -->
