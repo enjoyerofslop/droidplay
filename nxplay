@@ -644,7 +644,7 @@ for d in games/$tid/*; do
   fi
 done
 adb shell "chmod -R a+rwX '\$dst'; chmod a+rwx '\${dst%/*}'" > /dev/null 2>&1 || true
-echo "done: open nxnative on the device and pick $name"
+echo "done: open DroidPlay on the device and pick $name"
 EOF
   chmod +x "$out/install.sh"
   say "exported: $out"
@@ -692,7 +692,7 @@ if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
   fi
   say "nxplay: starting the game on $android"
   if ! adb -s "$android" shell am start -n org.nxnative.android/.Launcher --es game "$tid" --ez play true > /dev/null; then
-    say "nxplay: installed; open nxnative on the device and pick the game (it could not be started from here)"
+    say "nxplay: installed; open DroidPlay on the device and pick the game (it could not be started from here)"
   fi
   exit 0
 fi
