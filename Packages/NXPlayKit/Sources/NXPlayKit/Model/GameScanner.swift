@@ -138,13 +138,14 @@ public enum GameScanner {
     /// start_mac.sh).
     static let playerData: Set<String> = ["run", "cheats"]
 
-    /// Build APK's export: `<game name> (Android)` with the app in it (nxplay --apk), not any folder named so.
+    /// Build APK's export: `<game name> (Android)` with the app in it (nxplay --apk), not any folder named so. The app is `DroidPlay.apk`, or
+    /// `nxnative.apk` in an export from before the launcher app took DroidPlay's name.
     static func isAndroidExport(_ url: URL) -> Bool {
         url.lastPathComponent.hasSuffix(" (Android)")
-            && FileManager.default.fileExists(atPath: url.appending(path: "nxnative.apk").path)
+            && ["DroidPlay.apk", "nxnative.apk"].contains { FileManager.default.fileExists(atPath: url.appending(path: $0).path) }
     }
 
-    /// Build Game App's app: an APK or XAPK file in the Android folder (the nxnative app's own APK is inside Build APK's export folder).
+    /// Build Game App's app: an APK or XAPK file in the Android folder (the DroidPlay app's own APK is inside Build APK's export folder).
     static func isGameApp(_ url: URL) -> Bool {
         ["apk", "xapk"].contains(url.pathExtension.lowercased()) && !isDirectory(url)
     }

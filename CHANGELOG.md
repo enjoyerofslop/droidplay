@@ -4,6 +4,10 @@ User-visible changes to DroidPlay, `nxplay` and the setup. The format follows [K
 
 ## Unreleased
 
+### Changed
+
+- **The Android app is called DroidPlay on the device**, with DroidPlay's icon, in place of nxnative and its mark: the launcher, its header and themed icons, from droidnative's next build (droidnative #25). Its package is still `org.nxnative.android`, so installing it is an update: the games and saves on the device stay. **Build APK** exports it as `DroidPlay.apk`, and its How to install.txt and install.sh say DroidPlay; an older export with `nxnative.apk` still counts as one.
+
 ## 0.2.1 — 2026-11-08
 
 ### Added

@@ -17,7 +17,7 @@
 #   --apk          build for Android the same way, without a device, and export the app with the game's files for
 #                  installing on any device: <game folder>/android/<game name> (Android), with how to install it and an
 #                  adb install.sh
-#   --game-apk     build the game as an Android app of its own, to install anywhere without the nxnative app:
+#   --game-apk     build the game as an Android app of its own, to install anywhere without the DroidPlay app:
 #                  <game folder>/android/<game name>.apk, with its game data inside, or beside it as <game name>.romfs when
 #                  the game is over 2 GB (the app asks for that file once); needs a droidnative with --game-apk
 #   --game-xapk    the same app as one <game name>.xapk, the game data inside as its OBB file, for an XAPK installer
@@ -583,7 +583,7 @@ EOF
   rm -rf "$out"
   mkdir -p "$dst"
   clone() { cp -cR "$1" "$2" 2> /dev/null || cp -R "$1" "$2"; }
-  clone "$HOME/.local/share/nxnative/android/nxnative.apk" "$out/nxnative.apk"
+  clone "$HOME/.local/share/nxnative/android/nxnative.apk" "$out/DroidPlay.apk"   # the launcher app, DroidPlay on the device
   clone "$patched" "$dst/code"
   for d in font spv aoc; do
     if [[ -d "$work/$d" ]]; then clone "$work/$d" "$dst/$d"; fi
@@ -603,15 +603,15 @@ With a Mac or Linux computer that has adb (Android's platform-tools), and the de
   ./install.sh            (or ./install.sh <serial> when several devices are connected)
 
 By hand:
-1. Install nxnative.apk on the device. If Android says it conflicts with an installed app, that copy of nxnative was
-   built on another computer: uninstall it first, which deletes its games and saves.
-2. Open nxnative once, so Android makes its folder, then close it.
+1. Install DroidPlay.apk on the device. If Android says it conflicts with an installed app, that copy of DroidPlay
+   (or nxnative, its old name) was built on another computer: uninstall it first, which deletes its games and saves.
+2. Open DroidPlay once, so Android makes its folder, then close it.
 3. Copy the folder games/$tid into Android/data/org.nxnative.android/files/games/ on the device, for example
    over USB file transfer from a computer.
-4. Open nxnative and pick $name.
+4. Open DroidPlay and pick $name.
 
 The app carries every game built on the Mac that made it, and lists the ones copied to the device. A newer
-nxnative.apk from the same Mac installs over it and keeps the games and saves. The game's log on the device is
+DroidPlay.apk from the same Mac installs over it and keeps the games and saves. The game's log on the device is
 Android/data/org.nxnative.android/files/log.txt.
 EOF
   # the folders go as tar archives, one push each instead of one per file (the shaders are tens of thousands), unpacked
@@ -619,14 +619,14 @@ EOF
   # app, as the script's open_tree does
   cat > "$out/install.sh" << EOF
 #!/bin/sh
-# Installs $name on an Android device with adb: nxnative.apk (an update keeps the device's games and saves),
+# Installs $name on an Android device with adb: DroidPlay.apk (an update keeps the device's games and saves),
 # then games/$tid in the app's folder. usage: ./install.sh [adb serial]
 set -e
 cd "\$(dirname "\$0")"
 if [ -n "\${1:-}" ]; then export ANDROID_SERIAL="\$1"; fi
 dst=/sdcard/Android/data/org.nxnative.android/files/games/$tid
-echo "installing nxnative.apk"
-adb install -r nxnative.apk
+echo "installing DroidPlay.apk"
+adb install -r DroidPlay.apk
 adb shell am force-stop org.nxnative.android
 adb shell "rm -rf '\$dst/code' '\$dst/font' && mkdir -p '\$dst'"
 tmp="\$(mktemp -d)"
@@ -644,7 +644,7 @@ for d in games/$tid/*; do
   fi
 done
 adb shell "chmod -R a+rwX '\$dst'; chmod a+rwx '\${dst%/*}'" > /dev/null 2>&1 || true
-echo "done: open nxnative on the device and pick $name"
+echo "done: open DroidPlay on the device and pick $name"
 EOF
   chmod +x "$out/install.sh"
   say "exported: $out"
@@ -670,7 +670,7 @@ if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
     exit 1
   fi
   # A game app (--game-apk, --game-xapk): droidnative's own --game-apk makes the app, the game data inside it, beside
-  # it, or in the XAPK, in the Android folder, and leaves the nxnative app as it is. A checkout from before it says so.
+  # it, or in the XAPK, in the Android folder, and leaves the DroidPlay app as it is. A checkout from before it says so.
   if [[ -n "$game_app" ]]; then
     if ! grep -q -- "--game-apk" "$repo/scripts/build_android_from_nsp.py"; then
       warn "nxplay: the droidnative checkout at $repo can't make a game app (its build_android_from_nsp.py has no --game-apk): pull droidnative's main, which has it"
@@ -692,7 +692,7 @@ if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
   fi
   say "nxplay: starting the game on $android"
   if ! adb -s "$android" shell am start -n org.nxnative.android/.Launcher --es game "$tid" --ez play true > /dev/null; then
-    say "nxplay: installed; open nxnative on the device and pick the game (it could not be started from here)"
+    say "nxplay: installed; open DroidPlay on the device and pick the game (it could not be started from here)"
   fi
   exit 0
 fi
