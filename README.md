@@ -179,7 +179,7 @@ To set it up:
 2. Setup clones DroidPlay Core into `~/Library/Application Support/DroidPlay/droidplay-core` (`bin/setup`: `./droidplay-core` in the checkout; a checkout cloned before it was renamed from droidnative keeps its `droidnative` folder), or clone it yourself: `git clone https://github.com/enjoyerofslop/droidplay-core`. To build with your own branch, clone your fork anywhere and point Settings › Devices › Android at it. Before each install, nxplay pulls the checkout's upstream; on a branch without one, it stays on that code.
 3. On the device, turn on Developer options › USB debugging, connect it, and allow this Mac.
 
-The build log is in `<game folder>/android/<title ID>_build/logs`, and the game's log on the device is `Android/data/org.nxnative.android/files/log.txt` (`adb logcat -s nxnative`).
+The build log is in `<game folder>/android/<title ID>_build/logs`, and the game's log on the device is `Android/data/org.nxnative.android/files/log.txt` (`adb logcat -s DroidPlay`, or `-s nxnative` for a phone app from DroidPlay Core 0.4.0 or older).
 
 ### Saves
 
