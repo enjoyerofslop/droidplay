@@ -62,7 +62,7 @@ import Testing
             path: "nxplay-apk-\(UUID().uuidString)/Game", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: folder.deletingLastPathComponent()) }
         for path in [
-            "Game [0100000011D90000][v0].nsp", "android/Game (Android)/nxnative.apk",
+            "Game [0100000011D90000][v0].nsp", "android/Game (Android)/DroidPlay.apk",
             // no app in it: not an export
             "android/Other (Android)/games/x",
             "android/Game.apk", "android/Game.romfs",
@@ -77,8 +77,17 @@ import Testing
 
         #expect(game.androidExportURL?.lastPathComponent == "Game (Android)")
         #expect(game.androidExportURL?.deletingLastPathComponent().lastPathComponent == "android")
-        // the game's own app, not the nxnative app's APK inside the export folder
+        // the game's own app, not the DroidPlay app's APK inside the export folder
         #expect(game.androidAppURL?.lastPathComponent == "Game.apk")
+    }
+
+    @Test func anExportFromBeforeTheRenameStillCounts() throws {   // its app is nxnative.apk
+        let export = FileManager.default.temporaryDirectory.appending(path: "nxplay-apk-\(UUID().uuidString)/Game (Android)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: export.deletingLastPathComponent()) }
+        try FileManager.default.createDirectory(at: export, withIntermediateDirectories: true)
+        #expect(!GameScanner.isAndroidExport(export))
+        try Data([1]).write(to: export.appending(path: "nxnative.apk"))
+        #expect(GameScanner.isAndroidExport(export))
     }
 
     @MainActor @Test func playOnAndroidListsTheDevicesWithTheGame() throws {
