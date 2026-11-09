@@ -1,6 +1,8 @@
 name: CI
 
-# Text and screenshots only: nothing CI checks changes
+# Text and screenshots only: nothing CI checks changes. A push of only those to main runs nothing; a pull request runs
+# every time, because main's ruleset requires Scripts, App and Python environment, and a check that never reports
+# blocks the merge. For a text-only pull request those jobs are skipped, which GitHub counts as passing.
 on:
   push:
     branches: [main]
@@ -9,18 +11,46 @@ on:
       - "docs/**"
       - LICENSE
   pull_request:
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - LICENSE
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Changed files
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.files.outputs.code }}
+    steps:
+      - id: files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        # anything but the text the push trigger ignores runs the checks; so does a file list GitHub didn't give, so
+        # a failure here never waves a pull request through
+        run: |
+          code=true
+          if [[ -n "$PR" ]] && files="$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')"; then
+            code=false
+            while IFS= read -r file; do
+              case "$file" in
+                *.md | docs/* | LICENSE) ;;
+                *) code=true ;;
+              esac
+            done <<< "$files"
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "checks run: $code"
+
   scripts:
     name: Scripts
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
@@ -33,6 +63,8 @@ jobs:
 
   app:
     name: App
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
@@ -44,6 +76,8 @@ jobs:
 
   python:
     name: Python environment
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
