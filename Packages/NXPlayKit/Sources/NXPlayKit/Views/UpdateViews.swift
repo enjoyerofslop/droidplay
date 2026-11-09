@@ -37,6 +37,34 @@ struct UpdateBanner: View {
     }
 }
 
+/// Above the library when a newer release is out on GitHub, for a copy that doesn't install it (signed ad hoc): its
+/// page, where the player downloads it. Later hides it until the next launch, since the player may keep this version
+/// for now.
+struct UpdateAvailableBanner: View {
+    let version: String
+    let notes: Changelog
+    let dismiss: () -> Void
+    @Environment(Library.self) private var library
+
+    var body: some View {
+        HStack {
+            Image(systemName: "arrow.down.circle")
+            Text(Self.message(version))
+            Spacer()
+            WhatsNewButton(version: version, notes: notes)
+            Button("Open Release Page") { library.updater.openReleasePage() }
+            Button("Later", action: dismiss)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.blue.opacity(0.12))
+    }
+
+    static func message(_ version: String) -> String {
+        "DroidPlay \(version) is out. Download it from its release page and drag it into Applications."
+    }
+}
+
 /// Above the library when updates can't work for a reason the player can fix: once a launch, dismissable.
 struct UpdateProblemBanner: View {
     let problem: String
@@ -71,12 +99,27 @@ struct UpdateSettings: View {
                 case .ready(let version, let notes):
                     WhatsNewButton(version: version, notes: notes)
                     Button("Restart to Update") { library.restartToUpdate() }
+                case .available(let version, let notes, _):
+                    WhatsNewButton(version: version, notes: notes)
+                    Button("Open Release Page") { updater.openReleasePage() }
                 case .checking, .downloading: EmptyView()
                 default: Button("Check Now") { Task { await updater.check() } }
                 }
             }
         }
         .disabled(!updater.isEnabled)
+    }
+
+    /// What the copy does about new releases, under the section.
+    static func footer(_ mode: AppUpdater.Mode) -> String {
+        switch mode {
+        case .install:
+            "DroidPlay looks for a new release on GitHub at launch and once a day, and downloads it. It installs when you quit, or now with Restart to Update."
+        case .notify:
+            "DroidPlay looks for a new release on GitHub at launch and once a day, and says when one is out. It doesn't update itself: download the new release from its page and drag it into Applications."
+        case .off:
+            "This copy was built from the source: update it with git pull and bin/install."
+        }
     }
 
     @ViewBuilder private func status(_ state: AppUpdater.State) -> some View {
@@ -88,6 +131,7 @@ struct UpdateSettings: View {
             ProgressView().controlSize(.small)
             Text("Downloading \(version)…").foregroundStyle(.secondary)
         case .ready(let version, _): Text("\(version) is ready").foregroundStyle(.secondary)
+        case .available(let version, _, _): Text("\(version) is out").foregroundStyle(.secondary)
         case .failed(let message): Text(message).foregroundStyle(.orange).lineLimit(2)
         }
     }

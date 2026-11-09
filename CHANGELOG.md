@@ -4,6 +4,10 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 
 ## Unreleased
 
+### Added
+
+- **DroidPlay says when a new release is out.** At launch and once a day it asks GitHub for the latest release. When that's newer than yours, a banner above the library, a pill in Console Mode's top bar and Settings › Updates say so. **What's New** lists every release since your version, and **Open Release Page** opens the release on GitHub, where you download the DMG and drag DroidPlay into Applications. **Later** hides the banner until the next launch. DroidPlay still downloads and installs nothing itself: its releases are ad-hoc signed, so it couldn't check that a download is DroidPlay's.
+
 ## 0.2.0 — 2026-11-08
 
 ### Added

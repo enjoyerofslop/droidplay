@@ -9,6 +9,7 @@ import Security
 /// against the SHA-256 GitHub gives for it, mounted out of sight, and its app checked: notarized, signed by the same
 /// team as the running app, the same bundle ID and the release's version. The app is copied out (staged) and
 /// replaces this one when DroidPlay quits, or at once with Restart to Update, which waits until nothing runs.
+/// A release signed ad hoc only says a newer release is out (AppUpdate+Notice.swift).
 @MainActor @Observable
 public final class AppUpdater {
     public enum State: Equatable, Sendable {
@@ -18,18 +19,22 @@ public final class AppUpdater {
         case downloading(version: String)
         /// Staged in AppHome/Updates: installed when DroidPlay quits. Its changes since this version.
         case ready(version: String, notes: Changelog)
+        /// Out on GitHub, for a copy that doesn't install it (Mode.notify): its changes and its release page.
+        case available(version: String, notes: Changelog, page: URL)
         case failed(String)
     }
 
-    public private(set) var state: State = .idle
-    public private(set) var lastCheck: Date?
+    public internal(set) var state: State = .idle
+    public internal(set) var lastCheck: Date?
     /// When the staged update became ready: after a few days still running, the reminder gets warmer.
     public private(set) var readySince: Date?
     /// A reason updates can't work that the player can fix (DroidPlay run from the DMG or Downloads): the library says
     /// so. Passing problems (offline, GitHub busy) only show in Settings › Updates and are tried again the next day.
     public private(set) var problem: String?
     public let currentVersion: String
-    /// A released app (Developer ID, no checkout): only that one updates itself.
+    /// What this copy does about a new release: installs it (Developer ID), says it's out (ad hoc), or nothing.
+    public let mode: Mode
+    /// A released app (no checkout): it looks for new releases. Only a Developer ID one updates itself.
     public let isEnabled: Bool
 
     static let latestRelease = URL(
@@ -43,15 +48,28 @@ public final class AppUpdater {
     /// A faked state (tests, screenshots, -NXPlayPreviewUpdate): quitting installs nothing, whatever is staged.
     @ObservationIgnored private var previewing = false
     @ObservationIgnored let folder: URL
+    /// GitHub, for the notify path; tests answer for it.
+    @ObservationIgnored let fetch: Fetch
+    /// Opens a release's page in the browser; tests keep it.
+    @ObservationIgnored var openPage: (URL) -> Void = { NSWorkspace.shared.open($0) }
 
-    public init(bundle: Bundle = .main, folder: URL = AppHome.folder.appending(path: "Updates")) {
+    public convenience init(
+        bundle: Bundle = .main, folder: URL = AppHome.folder.appending(path: "Updates")
+    ) {
+        self.init(bundle: bundle, folder: folder, mode: nil, fetch: Self.fetchFromGitHub)
+    }
+
+    /// `mode` nil: as the running app's signature and Info.plist say.
+    init(bundle: Bundle, folder: URL, mode: Mode?, fetch: @escaping Fetch) {
         self.bundle = bundle.bundleURL
         self.folder = folder
+        self.fetch = fetch
         currentVersion =
             bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
         bundleID = bundle.bundleIdentifier ?? ""
         teamID = Self.ownTeamID()
-        isEnabled = teamID != nil && AppHome.sourceRoot == nil
+        self.mode = mode ?? Mode(teamID: teamID, fromCheckout: AppHome.sourceRoot != nil)
+        isEnabled = self.mode != .off
     }
 
     /// Checks now and once a day, while the app runs.
@@ -65,6 +83,7 @@ public final class AppUpdater {
 
     public func check() async {
         guard isEnabled else { return }
+        guard mode == .install else { return await lookForRelease() }
         // opened from the DMG or from Downloads, macOS runs a read-only copy (App Translocation): nothing to replace
         guard !bundle.path.contains("/AppTranslocation/"),
             FileManager.default.isWritableFile(atPath: bundle.deletingLastPathComponent().path)
@@ -143,11 +162,14 @@ public final class AppUpdater {
         let releases = stagedApp.flatMap(Changelog.of(app:))?.releases(
             after: currentVersion, upTo: release.version)
         if let releases, !releases.isEmpty { return releases }
-        let notes = Changelog(markdown: release.notes)
-        return Changelog(
-            sections: notes.sections.map {
-                Changelog.Section(
-                    title: $0.title.isEmpty ? release.version : $0.title, blocks: $0.blocks)
+        return Self.releaseNotes(release.notes, version: release.version)
+    }
+
+    /// A release's own notes as What's New: their untitled section takes the version as its title.
+    nonisolated static func releaseNotes(_ markdown: String, version: String) -> Changelog {
+        Changelog(
+            sections: Changelog(markdown: markdown).sections.map {
+                Changelog.Section(title: $0.title.isEmpty ? version : $0.title, blocks: $0.blocks)
             })
     }
 
@@ -251,62 +273,6 @@ public final class AppUpdater {
         process.executableURL = URL(filePath: "/bin/sh")
         process.arguments = ["-c", script, "swap", staged.path, bundle.path, relaunch ? "1" : "0"]
         try? process.run()
-    }
-
-    // MARK: - Release
-
-    struct Release {
-        let version: String
-        let notes: String
-        let dmg: URL
-        let sha256: String
-
-        /// GitHub's latest release: tag v<version>, a .dmg asset with its digest ("sha256:…"); nil without them.
-        init?(json data: Data) {
-            guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let tag = object["tag_name"] as? String,
-                let assets = object["assets"] as? [[String: Any]],
-                let asset = assets.first(where: {
-                    ($0["name"] as? String)?.hasSuffix(".dmg") == true
-                }),
-                let link = asset["browser_download_url"] as? String, let url = URL(string: link),
-                url.scheme == "https",
-                let digest = asset["digest"] as? String, digest.hasPrefix("sha256:")
-            else { return nil }
-            version = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
-            notes = object["body"] as? String ?? ""
-            dmg = url
-            sha256 = String(digest.dropFirst("sha256:".count))
-        }
-    }
-
-    nonisolated static func isNewer(_ version: String, than current: String) -> Bool {
-        let parts = { (v: String) in v.split(separator: ".").map { Int($0) ?? 0 } }
-        let a = parts(version)
-        let b = parts(current)
-        for i in 0..<max(a.count, b.count) {
-            let x = i < a.count ? a[i] : 0
-            let y = i < b.count ? b[i] : 0
-            if x != y { return x > y }
-        }
-        return false
-    }
-
-    /// The team in the running app's signature; nil when it is ad hoc (a build from the checkout).
-    nonisolated static func ownTeamID() -> String? {
-        var code: SecCode?
-        guard SecCodeCopySelf([], &code) == errSecSuccess, let code else { return nil }
-        var staticCode: SecStaticCode?
-        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess, let staticCode else {
-            return nil
-        }
-        var info: CFDictionary?
-        guard
-            SecCodeCopySigningInformation(
-                staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &info)
-                == errSecSuccess
-        else { return nil }
-        return (info as? [String: Any])?[kSecCodeInfoTeamIdentifier as String] as? String
     }
 
     nonisolated private static func run(_ tool: String, _ arguments: [String]) -> (

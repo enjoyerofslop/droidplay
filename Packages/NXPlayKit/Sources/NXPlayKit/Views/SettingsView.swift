@@ -270,11 +270,7 @@ private struct UpdatesTab: View {
             Section {
                 UpdateSettings()
             } footer: {
-                Footer(
-                    library.updater.isEnabled
-                        ? "DroidPlay looks for a new release on GitHub at launch and once a day, and downloads it. It installs when you quit, or now with Restart to Update."
-                        : "This copy was built from the source: update it with git pull and bin/install."
-                )
+                Footer(UpdateSettings.footer(library.updater.mode))
             }
         }
     }

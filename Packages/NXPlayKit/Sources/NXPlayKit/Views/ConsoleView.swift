@@ -16,9 +16,7 @@ struct ConsoleView: View {
         let games = library.navigableGames  // the extracted ones
         let selected = games.first { $0.id == library.selection } ?? games.first
         let details = library.showsDetails && selected != nil
-        let update: (version: String, notes: Changelog)? =
-            if case .ready(let version, let notes) = library.updater.state { (version, notes) } else
-            { nil }
+        let update = library.updater.notice
         VStack(spacing: 0) {
             GeometryReader { geometry in
                 // the banner takes what the carousel and the hints leave: about half of the screen
@@ -98,7 +96,7 @@ struct ConsoleView: View {
         .animation(.easeInOut(duration: 0.25), value: library.viewingShot)
         .overlay {
             if library.showsUpdate, let update {
-                UpdateCard(version: update.version, notes: update.notes, gamepad: library.gamepad)
+                UpdateCard(notice: update, gamepad: library.gamepad)
                     .transition(.opacity)
             }
         }
