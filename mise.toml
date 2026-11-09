@@ -4,7 +4,7 @@ xcodegen = "2.46.0"
 uv = "0.11.10"
 
 [tasks.setup]
-description = "Check the Mac, install the tools and Python packages, clone nxnative, build and install NX Play"
+description = "Check the Mac, install the tools and Python packages, clone nxnative, build and install DroidPlay"
 run = "bin/setup"
 
 [tasks.doctor]
@@ -20,11 +20,11 @@ description = "Run the NXPlayKit tests"
 run = "swift test --package-path Packages/NXPlayKit"
 
 [tasks.build]
-description = "Build NX Play.app (Release) into build/"
+description = "Build DroidPlay.app (Release) into build/"
 run = "bin/build"
 
 [tasks.install]
-description = "Build NX Play.app and install it into /Applications"
+description = "Build DroidPlay.app and install it into /Applications"
 run = "bin/install"
 
 [tasks.screenshots]
@@ -32,6 +32,6 @@ description = "Regenerate the README screenshots in docs/ (bin/screenshots [game
 run = "bin/screenshots"
 
 [tasks.app]
-description = "Build and open NX Play"
+description = "Build and open DroidPlay"
 depends = ["build"]
-run = "open 'build/Build/Products/Release/NX Play.app'"
+run = "open 'build/Build/Products/Release/DroidPlay.app'"

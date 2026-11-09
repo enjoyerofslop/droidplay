@@ -1,6 +1,6 @@
 # Changelog
 
-User-visible changes to NX Play, `nxplay` and the setup. The format follows [Keep a Changelog](https://keepachangelog.com).
+User-visible changes to DroidPlay, `nxplay` and the setup. The format follows [Keep a Changelog](https://keepachangelog.com).
 
 ## Unreleased
 
@@ -11,6 +11,10 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 ### Changed
 
 - **Console Mode's logo is DroidPlay's icon**, the controller on its light green tile, in the top bar and on the update card. It drew only the controller, NX Play's logo too, so it read as NX Play's.
+
+### Fixed
+
+- **Setup's password prompt says DroidPlay**, not NX Play, when installing a tool needs an administrator. For maintainers: `bin/screenshots` and `mise run app` look for `DroidPlay.app` again, so they work.
 
 ## 0.2.0 — 2026-11-08
 
