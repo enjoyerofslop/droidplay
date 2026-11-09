@@ -8,6 +8,8 @@ public struct RootView: View {
     @FocusState private var searchFocused: Bool
     /// The update problem banner, dismissed for this launch.
     @State private var problemDismissed = false
+    /// The release that's out on GitHub, put off until the next launch.
+    @State private var availableDismissed = false
     #if DEBUG
         @Environment(\.openSettings) private var openSettings
     #endif
@@ -40,6 +42,13 @@ public struct RootView: View {
                         if library.needsSetup { SetupBanner() }
                         if case .ready(let version, let notes) = library.updater.state {
                             UpdateBanner(version: version, notes: notes)
+                        }
+                        if case .available(let version, let notes, _) = library.updater.state,
+                            !availableDismissed
+                        {
+                            UpdateAvailableBanner(version: version, notes: notes) {
+                                availableDismissed = true
+                            }
                         }
                         if let problem = library.updater.problem, !problemDismissed {
                             UpdateProblemBanner(problem: problem) { problemDismissed = true }

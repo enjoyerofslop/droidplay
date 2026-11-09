@@ -96,8 +96,8 @@ struct TopBar: View {
                 Text("DroidPlay")
             }
             .font(.title2.weight(.bold))
-            if case .ready(let version, _) = library.updater.state {
-                UpdatePill(version: version)
+            if let notice = library.updater.notice {
+                UpdatePill(notice: notice)
             }
             Spacer()
             // each controller with the player it is in a game: one shows its name, several only their numbers and
@@ -136,9 +136,10 @@ struct TopBar: View {
     }
 }
 
-/// Beside the logo while an update waits: a quiet ask, never taking the focus. Y or a click opens its card.
+/// Beside the logo while an update waits, or one is out on GitHub: a quiet ask, never taking the focus. Y or a click
+/// opens its card.
 struct UpdatePill: View {
-    let version: String
+    let notice: AppUpdater.Notice
     @Environment(Library.self) private var library
 
     var body: some View {
@@ -148,14 +149,16 @@ struct UpdatePill: View {
                 library.openUpdate()
             } label: {
                 Pill(
-                    text: Self.text(version, library: library, now: context.date),
+                    text: Self.text(notice, library: library, now: context.date),
                     symbol: "arrow.down.circle.fill", color: .blue)
             }
             .buttonStyle(.plain)
         }
     }
 
-    static func text(_ version: String, library: Library, now: Date) -> LocalizedStringKey {
+    static func text(_ notice: AppUpdater.Notice, library: Library, now: Date) -> LocalizedStringKey {
+        let version = notice.version
+        if notice.page != nil { return "DroidPlay \(version) is out" }
         if library.quitsWhenIdle { return "Restarting for \(version)" }
         if let since = library.updater.waitingSince(now: now) {
             return "Update \(version) waiting since \(since.formatted(.dateTime.weekday(.wide)))"

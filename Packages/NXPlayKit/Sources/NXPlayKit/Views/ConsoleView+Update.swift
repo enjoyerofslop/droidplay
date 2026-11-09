@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// Over the games when the player asks (Y, or the top bar's pill): what the waiting update brings, and a restart that
-/// installs it in a few seconds. A restarts, B or Y close it; a click outside closes it too.
+/// installs it in a few seconds, or for one out on GitHub, its release page. A restarts or opens the page, B or Y
+/// close it; a click outside closes it too.
 struct UpdateCard: View {
-    let version: String
-    let notes: Changelog
+    let notice: AppUpdater.Notice
     let gamepad: Gamepad
     @Environment(Library.self) private var library
 
@@ -17,21 +17,24 @@ struct UpdateCard: View {
                 HStack(spacing: 14) {
                     Logo().frame(height: 40)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("DroidPlay \(version)").font(.largeTitle.bold())
-                        Text(Self.subtitle(library: library))
+                        Text("DroidPlay \(notice.version)").font(.largeTitle.bold())
+                        Text(Self.subtitle(notice, library: library))
                             .font(.title3).foregroundStyle(.white.opacity(0.7))
                     }
                 }
-                if !notes.isEmpty {
+                if !notice.notes.isEmpty {
                     ScrollView {
-                        ChangelogBlocks(changelog: notes).font(.title3)
+                        ChangelogBlocks(changelog: notice.notes).font(.title3)
                     }
                     .scrollIndicators(.never)
                     .frame(maxHeight: 420)
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 HStack(spacing: 32) {
-                    action(gamepad.symbol(for: .confirm) ?? "return", "Restart to Update") {
+                    action(
+                        gamepad.symbol(for: .confirm) ?? "return",
+                        notice.page != nil ? "Open Release Page" : "Restart to Update"
+                    ) {
                         library.handleUpdate(.confirm)
                     }
                     action(gamepad.symbol(for: .back) ?? "escape", "Later") {
@@ -50,8 +53,12 @@ struct UpdateCard: View {
         .ignoresSafeArea()
     }
 
-    /// "Restart takes a few seconds; you're back here after." or, waiting days, since when.
-    static func subtitle(library: Library) -> String {
+    /// "Restart takes a few seconds; you're back here after." or, waiting days, since when; for a release out on
+    /// GitHub, how to get it.
+    static func subtitle(_ notice: AppUpdater.Notice, library: Library) -> String {
+        if notice.page != nil {
+            return "Out on GitHub. Download it from its release page and drag it into Applications."
+        }
         if let since = library.updater.waitingSince() {
             return
                 "Waiting since \(since.formatted(.dateTime.weekday(.wide))). Restarting takes a few seconds."

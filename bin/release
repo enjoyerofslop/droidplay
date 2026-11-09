@@ -7,8 +7,8 @@
 #        the name, when given, follows the version in the GitHub release's title and the changelog's heading
 # By default the app is ad-hoc signed, in a plain DMG, not notarized: DroidPlay's releases are made without a Developer ID.
 # The release's notes say how to open it (macOS blocks it the first time: Privacy & Security › Open Anyway) and carry the
-# DMG's SHA-256. Such an app does not update itself (AppUpdater runs only for a Developer ID build): players download each
-# release from GitHub.
+# DMG's SHA-256. Such an app does not update itself: AppUpdater only tells players a newer release is out and links to
+# its page, where they download it (it installs releases only in a Developer ID build).
 #   --prerelease    a GitHub pre-release, which GitHub's latest release (and so AppUpdater) passes over
 #   --developer-id  signed with the keychain's Developer ID Application certificate and the hardened runtime, the app
 #                   and the DMG notarized and stapled: an app that updates itself. Needs, once:
@@ -162,7 +162,7 @@ if (( unsigned )); then
   notes+=$'\n\n'"### Installing this $kind"$'\n\n'"This build is not signed with a Developer ID or notarized, so macOS blocks it the first time it opens:"$'\n\n'
   notes+="1. Open the DMG and drag $app_name into Applications."$'\n'
   notes+="2. Open $app_name. When macOS says it can't check it, click **Done**, then open System Settings › Privacy & Security and click **Open Anyway** beside $app_name. Or, in Terminal: \`xattr -dr com.apple.quarantine /Applications/$app_name.app\`."$'\n'
-  notes+="3. $app_name doesn't update itself: download each new release from this page."$'\n\n'
+  notes+="3. $app_name doesn't update itself. It says when a newer release is out: download each one from this page."$'\n\n'
   notes+="SHA-256 of \`$(basename "$dmg")\`: \`$(cut -d' ' -f1 "$dmg.sha256")\`"
 fi
 printf '  %s\n' "${notes//$'\n'/$'\n  '}"
