@@ -30,7 +30,7 @@ import Testing
         #expect(Uninstaller.size(of: appHome) >= 4096)
     }
 
-    @Test func readsTheBrewfile() throws {
+    @Test func readsTheBrewfiles() throws {
         let brewfile = root.appending(path: "Brewfile")
         try Data(
             """
@@ -41,9 +41,21 @@ import Testing
 
             """.utf8
         ).write(to: brewfile)
-        let tools = Uninstaller.brewfileTools(brewfile)
-        #expect(tools.map(\.name) == ["uv", "zstd", "dotnet-sdk"])
-        #expect(tools.map(\.cask) == [false, false, true])
+        let android = root.appending(path: "Brewfile.android")
+        try Data(
+            """
+            brew "openjdk@21"                  # javac and keytool
+            cask "android-commandlinetools"    # sdkmanager
+
+            """.utf8
+        ).write(to: android)
+        // a Brewfile that isn't there (an older bundle without Brewfile.android) adds nothing
+        let tools = Uninstaller.brewfileTools([brewfile, android, root.appending(path: "none")])
+        #expect(
+            tools.map(\.name) == [
+                "uv", "zstd", "dotnet-sdk", "openjdk@21", "android-commandlinetools",
+            ])
+        #expect(tools.map(\.cask) == [false, false, true, false, true])
     }
 
     @Test func unpinsOnlyThisAppFromTheDock() throws {

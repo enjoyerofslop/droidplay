@@ -41,11 +41,12 @@ targets:
           mkdir -p "$dir"
           cp "$SRCROOT/bin/setup" "$dir/setup"
           cp "$SRCROOT/bin/askpass" "$dir/askpass"
-          cp "$SRCROOT/Brewfile" "$SRCROOT/pyproject.toml" "$SRCROOT/uv.lock" "$SRCROOT/.python-version" "$dir/"
+          cp "$SRCROOT/Brewfile" "$SRCROOT/Brewfile.android" "$SRCROOT/pyproject.toml" "$SRCROOT/uv.lock" "$SRCROOT/.python-version" "$dir/"
         inputFiles:
           - $(SRCROOT)/bin/setup
           - $(SRCROOT)/bin/askpass
           - $(SRCROOT)/Brewfile
+          - $(SRCROOT)/Brewfile.android
           - $(SRCROOT)/pyproject.toml
           - $(SRCROOT)/uv.lock
           - $(SRCROOT)/.python-version
@@ -53,6 +54,7 @@ targets:
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/setup
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/askpass
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/Brewfile
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/Brewfile.android
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/pyproject.toml
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/uv.lock
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Setup/.python-version

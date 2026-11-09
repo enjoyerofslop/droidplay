@@ -1,0 +1,5 @@
+# What Install on Android and Build Game App need from Homebrew. bin/setup installs each one only when it finds none
+# (a JDK 17 or newer, sdkmanager), then installs the Android SDK's packages with sdkmanager; Uninstall offers to remove
+# these as it does the Brewfile's. A file of its own so the Brewfile stays as NX Play has it.
+brew "openjdk@21"                  # javac and keytool build and sign the app; sdkmanager and the build-tools run on it
+cask "android-commandlinetools"    # sdkmanager, which installs the NDK, CMake, build-tools and platform-tools

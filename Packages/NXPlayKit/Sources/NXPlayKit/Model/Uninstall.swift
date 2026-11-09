@@ -169,33 +169,35 @@ public final class Uninstaller {
 
     // MARK: - Homebrew
 
-    /// The Brewfile bundled with the setup: its formulae and casks.
-    nonisolated static func brewfileTools(
-        _ brewfile: URL? = AppHome.setupProject?.appending(path: "Brewfile")
-    )
+    /// The Brewfiles bundled with the setup: NX Play's, and Brewfile.android with what Android builds need (a JDK and
+    /// sdkmanager), which bin/setup installs when nothing else provides them.
+    nonisolated static var setupBrewfiles: [URL] {
+        ["Brewfile", "Brewfile.android"].compactMap { AppHome.setupProject?.appending(path: $0) }
+    }
+
+    /// Their formulae and casks, in order.
+    nonisolated static func brewfileTools(_ brewfiles: [URL] = setupBrewfiles)
         -> [(name: String, cask: Bool)]
     {
-        guard let brewfile, let text = try? String(contentsOf: brewfile, encoding: .utf8) else {
-            return []
-        }
-        return text.split(separator: "\n").compactMap { line in
-            guard let match = line.firstMatch(of: /^(brew|cask)\s+"([^"]+)"/) else { return nil }
-            return (String(match.2), match.1 == "cask")
+        brewfiles.flatMap { brewfile -> [(name: String, cask: Bool)] in
+            guard let text = try? String(contentsOf: brewfile, encoding: .utf8) else { return [] }
+            return text.split(separator: "\n").compactMap { line in
+                guard let match = line.firstMatch(of: /^(brew|cask)\s+"([^"]+)"/) else { return nil }
+                return (String(match.2), match.1 == "cask")
+            }
         }
     }
 
-    /// The Brewfile's tools installed now, each with the installed formulae that depend on it (zstd is a dependency of
+    /// The Brewfiles' tools installed now, each with the installed formulae that depend on it (zstd is a dependency of
     /// llvm, node, python and many more: Homebrew won't remove it, and shouldn't).
-    nonisolated static func installedTools(
-        brewfile: URL? = AppHome.setupProject?.appending(path: "Brewfile")
-    ) -> [Tool] {
+    nonisolated static func installedTools(brewfiles: [URL] = setupBrewfiles) -> [Tool] {
         guard let brew = brewPath else { return [] }
         let list = { (kind: String) in
             Set(lines(Self.run(brew, ["list", "-1", kind]).output))
         }
         let formulae = list("--formula")
         let casks = list("--cask")
-        return brewfileTools(brewfile).compactMap { tool in
+        return brewfileTools(brewfiles).compactMap { tool in
             guard (tool.cask ? casks : formulae).contains(tool.name) else { return nil }
             let users =
                 tool.cask ? [] : lines(Self.run(brew, ["uses", "--installed", tool.name]).output)
