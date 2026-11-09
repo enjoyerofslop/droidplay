@@ -92,7 +92,7 @@ struct TopBar: View {
     var body: some View {
         HStack(spacing: 20) {
             HStack(spacing: 12) {
-                Logo().frame(height: 30)
+                Logo().frame(height: 36)
                 Text("DroidPlay")
             }
             .font(.title2.weight(.bold))
