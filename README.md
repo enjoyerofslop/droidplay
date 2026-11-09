@@ -49,7 +49,7 @@ DroidPlay takes the other route: one app for all your games, everything portable
 
 ## Install
 
-1. Download the DMG from the [releases](https://github.com/enjoyerofslop/droidplay/releases) and drag DroidPlay into Applications. The releases are unsigned pre-releases for now (no Developer ID): the first time, macOS won't open it, so open System Settings › Privacy & Security and click **Open Anyway** beside DroidPlay. A pre-release doesn't update itself; download the next one from the same page. Or build it [from the source](#from-the-source).
+1. Download the DMG from the [releases](https://github.com/enjoyerofslop/droidplay/releases) and drag DroidPlay into Applications. The releases are ad-hoc signed, not with a Developer ID, and not notarized: the first time, macOS won't open it, so open System Settings › Privacy & Security and click **Open Anyway** beside DroidPlay. DroidPlay doesn't update itself; download the next release from the same page. Or build it [from the source](#from-the-source).
 2. Install [Homebrew](https://brew.sh) if you don't have it: one command in Terminal.
 3. Open DroidPlay. **Setup** opens by itself (later: DroidPlay › Setup…). It checks the Mac and Xcode and says what to fix. **Install Missing** then:
    - downloads Xcode's Metal Toolchain, which every build needs to compile the game's shaders;
@@ -62,7 +62,7 @@ Everything except Homebrew's tools and the Android SDK goes into one folder, `~/
 
 **DroidPlay › Uninstall DroidPlay…** removes it again: its folder, settings, caches and window state, its Dock icon if you kept it there, and the app, which goes to the Trash. It can also remove the Homebrew tools Setup installed. It leaves your games folder (the games, their builds and their saves), `prod.keys`, the save backup repository, Homebrew itself and the Android SDK, which Android Studio may use too.
 
-A signed release of DroidPlay updates itself (a pre-release doesn't). It checks GitHub for a new release at launch and once a day (or now, with DroidPlay › Check for Updates…), and downloads it, verifying its checksum, signature and notarization. The update installs when you quit, or now with **Restart to Update**. **What's New** beside it lists what changed since your version; Help › DroidPlay Changelog has every release. DroidPlay never interrupts a game or a build to ask. A banner above the library, or a pill in Console Mode's top bar, says an update is ready. In Console Mode, Y (or U) shows what's new. If DroidPlay can't update itself because it runs from the DMG or from Downloads, the library asks you to move it into Applications.
+A build signed with a Developer ID (`bin/release --developer-id`) updates itself; DroidPlay's releases are ad-hoc signed, so they don't. Such a build checks GitHub for a new release at launch and once a day (or now, with DroidPlay › Check for Updates…), and downloads it, verifying its checksum, signature and notarization. The update installs when you quit, or now with **Restart to Update**. **What's New** beside it lists what changed since your version; Help › DroidPlay Changelog has every release. DroidPlay never interrupts a game or a build to ask. A banner above the library, or a pill in Console Mode's top bar, says an update is ready. In Console Mode, Y (or U) shows what's new. If DroidPlay can't update itself because it runs from the DMG or from Downloads, the library asks you to move it into Applications.
 
 Put your keys in `~/.switch/prod.keys`, or choose the file in Settings.
 
@@ -307,10 +307,10 @@ bin/build        # build/Build/Products/Release/DroidPlay.app
 bin/install      # build and install into /Applications (or: bin/install ~/Applications)
 mise run app     # build and open it
 mise run test    # NXPlayKit tests (swift test --package-path Packages/NXPlayKit)
-bin/release 1.7.12 "Stair Climber"  # release (the name is optional): sign, notarize, DMG, then (after you confirm) commit, tag and publish
+bin/release 1.7.12 "Stair Climber"  # release (the name is optional): ad-hoc signed DMG, then (after you confirm) commit, tag and publish
 ```
 
-`bin/release` needs a Developer ID Application certificate and a notarytool profile (`xcrun notarytool store-credentials nxplay-notary`). It moves the changelog's Unreleased notes under the new version and bumps the version in `project.yml`. It builds with the hardened runtime and without the checkout's paths, so the release keeps everything in its own folder. The app and the DMG are notarized and stapled. Nothing is committed, pushed or published until you confirm, and the DMG stays in `build/release`. Released apps update from the latest GitHub release's DMG, using the SHA-256 digest GitHub records for each uploaded asset.
+`bin/release` moves the changelog's Unreleased notes under the new version and bumps the version in `project.yml`. It builds without the checkout's paths, so the release keeps everything in its own folder. By default the app is ad-hoc signed, in a plain DMG, not notarized; the release's notes say how to open it and give the DMG's SHA-256, also uploaded beside it. `--prerelease` publishes it as a GitHub pre-release. `--developer-id` signs with a Developer ID Application certificate and the hardened runtime, and notarizes and staples the app and the DMG; it needs a notarytool profile (`xcrun notarytool store-credentials nxplay-notary`). Nothing is committed, pushed or published until you confirm, and the DMG stays in `build/release`. Developer ID builds update from the latest GitHub release's DMG, using the SHA-256 digest GitHub records for each uploaded asset; an ad-hoc signed latest release is one they don't install (not notarized, no team).
 
 A checkout build doesn't update itself. To see the update notices anyway, open it with `open -a "DroidPlay" --args -NXPlayPreviewUpdate ready` (or `waiting` for the reminder after a few days, or `problem` for the move-into-Applications banner). It fakes an update with the changelog's Unreleased notes. Restart to Update then only quits, and released apps ignore the argument.
 

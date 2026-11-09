@@ -8,6 +8,10 @@ User-visible changes to NX Play, `nxplay` and the setup. The format follows [Kee
 
 - **Setup installs what Android needs**, as it does for the Mac and iPhone. Install Missing now also installs a JDK and the Android SDK's command-line tools with Homebrew (each only when the Mac has none), then the NDK, CMake, build-tools, an Android platform and platform-tools into `~/Library/Android/sdk`, about 3 GB. Before installing those, Setup asks you to accept Google's Android SDK License, unless it was accepted in that SDK already (Android Studio's, say). droidnative and Android have their own headings in Setup, and a missing droidnative clone is now something Install Missing fixes. Uninstall offers to remove the two Homebrew tools as well; it leaves the Android SDK.
 
+### Changed
+
+- **Releases are ad-hoc signed, as the pre-releases were**, not with a Developer ID. The first time, macOS asks you to allow DroidPlay (System Settings › Privacy & Security › Open Anyway), and DroidPlay doesn't update itself: download each release from the [releases page](https://github.com/enjoyerofslop/droidplay/releases), where its notes give the DMG's SHA-256. For maintainers: `bin/release` does this by default, `--prerelease` marks a pre-release, and `--developer-id` signs and notarizes as before.
+
 ## 0.1.1 — 2026-11-08
 
 ### Fixed
