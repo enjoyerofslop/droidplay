@@ -10,14 +10,14 @@ public final class Job: Identifiable {
         case macApp
         /// Through Xcode: prepare the project, build it signed, install and start it.
         case install(Device)
-        /// Through droidnative and adb: build in the game folder's android folder, install and start it.
+        /// Through DroidPlay Core and adb: build in the game folder's android folder, install and start it.
         case android(AndroidDevice)
         /// The same build without a device, exported with the game's files for installing anywhere (nxplay --apk).
         case apk
         /// The game as an Android app of its own, without the nxnative app (nxplay --game-apk, --game-xapk).
         case gameApp(GameAppFormat)
 
-        /// Builds with droidnative, in the game folder's android folder.
+        /// Builds with DroidPlay Core, in the game folder's android folder.
         public var buildsForAndroid: Bool {
             switch self {
             case .android, .apk, .gameApp: true
@@ -30,7 +30,7 @@ public final class Job: Identifiable {
         public var rewritesTheMacBuild: Bool {
             switch self {
             case .ipa, .macApp, .install: true
-            // its own folder, <game folder>/android, with droidnative's code
+            // its own folder, <game folder>/android, with DroidPlay Core's code
             case .extract, .rebuild, .play, .android, .apk, .gameApp: false
             }
         }

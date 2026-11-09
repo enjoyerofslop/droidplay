@@ -16,7 +16,7 @@ public struct SetupView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Setup").font(.title2.bold())
             Text(
-                "Switch games build with Xcode, a few Homebrew tools, Python and nxnative; for Android, with droidnative, a JDK and the Android SDK. DroidPlay installs all but Xcode and Homebrew itself, and keeps what it installs in one folder, except the Android SDK, which goes where Android Studio keeps it."
+                "Switch games build with Xcode, a few Homebrew tools, Python and nxnative; for Android, with DroidPlay Core, a JDK and the Android SDK. DroidPlay installs all but Xcode and Homebrew itself, and keeps what it installs in one folder, except the Android SDK, which goes where Android Studio keeps it."
             )
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)

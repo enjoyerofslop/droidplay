@@ -3,7 +3,7 @@ import Observation
 
 /// Settings › Setup: runs the bundled bin/setup (AppHome.setupProject), the same script a developer runs from the
 /// checkout, to check what the builds need and install what's missing. Homebrew is the one prerequisite the player
-/// installs; Homebrew's tools, the .NET SDK, Python with nxnative's packages, nxnative and droidnative, and what
+/// installs; Homebrew's tools, the .NET SDK, Python with nxnative's packages, nxnative and DroidPlay Core, and what
 /// Android builds need (a JDK, sdkmanager and the Android SDK's packages) come from here, all but Homebrew's and the
 /// Android SDK's into AppHome.folder. The script's ✓ ! ✗ lines become the rows; the rest is the log.
 @MainActor @Observable
@@ -138,7 +138,7 @@ struct SetupParser {
     private var section = ""
 
     static let sections: Set<String> = [
-        "Mac", "Xcode", "Tools", "Python (.venv)", "nxnative", "droidnative", "Android", "Keys",
+        "Mac", "Xcode", "Tools", "Python (.venv)", "nxnative", "DroidPlay Core", "Android", "Keys",
         "DroidPlay",
     ]
 
