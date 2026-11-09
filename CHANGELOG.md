@@ -4,6 +4,10 @@ User-visible changes to DroidPlay, `nxplay` and the setup. The format follows [K
 
 ## Unreleased
 
+### Changed
+
+- **The README asks for `adb logcat -s DroidPlay`** for the Android app's log, as DroidPlay Core's app tags it from 0.5.0 on; `-s nxnative` still works for older ones.
+
 ## 0.2.2 — 2026-11-09
 
 ### Changed
