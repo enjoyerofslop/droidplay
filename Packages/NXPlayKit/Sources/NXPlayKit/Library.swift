@@ -62,7 +62,7 @@ public final class Library {
     }
     public var nxnativePath: String { didSet { defaults.set(nxnativePath, forKey: Keys.nxnative) } }
     public var keysPath: String { didSet { defaults.set(keysPath, forKey: Keys.keys) } }
-    /// The droidnative checkout Install on Android builds with (Library+Android.swift).
+    /// The DroidPlay Core checkout Install on Android builds with (Library+Android.swift).
     public var nxnativeAndroidPath: String {
         didSet { defaults.set(nxnativeAndroidPath, forKey: Keys.nxnativeAndroid) }
     }
@@ -352,8 +352,8 @@ public final class Library {
         // the bundled setup reads the files bundled beside it, for a checkout build too
         if let project = AppHome.setupProject { env["NXPLAY_PROJECT"] = project.path }
         if AppHome.sourceRoot == nil { env["NXPLAY_HOME"] = AppHome.folder.path }
-        // where Setup clones droidnative: the folder Install on Android builds with. Without it bin/setup took a folder
-        // relative to its own, the app bundle's Setup, and 0.1.0 cloned droidnative into the app
+        // where Setup clones DroidPlay Core: the folder Install on Android builds with. Without it bin/setup took a folder
+        // relative to its own, the app bundle's Setup, and 0.1.0 cloned DroidPlay Core into the app
         env["NXNATIVE_ANDROID"] = nxnativeAndroidRepo
         if let askpass = AppHome.setupProject?.appending(path: "askpass") {
             env["SUDO_ASKPASS"] = askpass.path
@@ -926,7 +926,7 @@ public final class Library {
             problem = "The nxplay script is missing from the app bundle."
             return nil
         }
-        // Install on Android and Build APK build with droidnative's checkout instead (androidCommand)
+        // Install on Android and Build APK build with DroidPlay Core's checkout instead (androidCommand)
         guard kind.buildsForAndroid || fm.fileExists(atPath: repo + "/scripts/build_ipa_from_nsp.py") else {
             problem =
                 "No nxnative checkout at \(repo). Open Setup to install it, or set its folder in Settings."

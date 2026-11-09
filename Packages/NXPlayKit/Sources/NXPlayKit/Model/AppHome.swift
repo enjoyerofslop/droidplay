@@ -33,13 +33,13 @@ public enum AppHome {
         return folder.appending(path: "nxnative").path
     }
 
-    /// droidnative, for Install on Android, where nxplay looks for it: beside nxnative for a build from a checkout
-    /// (./droidnative, else ../droidnative), else in our own folder. A checkout set up before the rename keeps its
-    /// nxnative-android folder, found when there is no droidnative one.
+    /// DroidPlay Core, for Install on Android, where nxplay looks for it: beside nxnative for a build from a checkout
+    /// (./droidplay-core, else ../droidplay-core), else in our own folder. A checkout cloned before a rename keeps its
+    /// folder (droidnative until 2026-11-09, nxnative-android before that), found when there is no droidplay-core one.
     public static var defaultNXNativeAndroid: String {
         let fm = FileManager.default
         func pick(_ dir: URL) -> URL? {
-            for name in ["droidnative", "nxnative-android"] {
+            for name in ["droidplay-core", "droidnative", "nxnative-android"] {
                 let url = dir.appending(path: name)
                 if fm.fileExists(atPath: url.path) { return url }
             }
@@ -47,9 +47,9 @@ public enum AppHome {
         }
         if let sourceRoot {
             return (pick(sourceRoot) ?? pick(sourceRoot.deletingLastPathComponent())
-                ?? sourceRoot.deletingLastPathComponent().appending(path: "droidnative")).path
+                ?? sourceRoot.deletingLastPathComponent().appending(path: "droidplay-core")).path
         }
-        return (pick(folder) ?? folder.appending(path: "droidnative")).path
+        return (pick(folder) ?? folder.appending(path: "droidplay-core")).path
     }
 
     /// The Python environment nxnative's scripts run in.

@@ -23,14 +23,14 @@ import Testing
     @Test func readsTheAndroidSectionsAndAsksForTheLicenseOnlyWhenNeeded() {
         var parser = SetupParser()
         for line in [
-            "nxnative", "  ✓ /Users/me/nxnative (abc1234, 2 days ago)", "", "droidnative",
-            "  ✗ not cloned at droidnative (Install on Android needs it): git clone …", "",
+            "nxnative", "  ✓ /Users/me/nxnative (abc1234, 2 days ago)", "", "DroidPlay Core",
+            "  ✗ not cloned at droidplay-core (Install on Android needs it): git clone …", "",
             "Android", "  ✓ JDK 21.0.5 (/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home)",
             "  ✗ Android SDK packages missing at /Users/me/Library/Android/sdk: ndk;28.2.13676358 (installing them accepts the Android SDK License: DroidPlay's Setup asks first, or run bin/setup in Terminal)",
         ] {
             parser.read(line)
         }
-        #expect(parser.items.map(\.section) == ["nxnative", "droidnative", "Android", "Android"])
+        #expect(parser.items.map(\.section) == ["nxnative", "DroidPlay Core", "Android", "Android"])
         #expect(parser.items.map(\.state) == [.ok, .missing, .ok, .missing])
     }
 

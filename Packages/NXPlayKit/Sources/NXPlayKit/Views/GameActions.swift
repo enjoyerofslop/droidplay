@@ -71,7 +71,7 @@ struct GameActions: View {
                 Button("Look Again", systemImage: "arrow.clockwise") { library.refreshDevices() }
             }
             .disabled(busy || kept || game?.isExtracted != true || game?.canBuildIPA != true)
-            // droidnative builds in its own folder, so a kept build doesn't stop it; it reads NSPs, XCIs and NUPs (a checkout without NUP support stops in nxplay), not dumps
+            // DroidPlay Core builds in its own folder, so a kept build doesn't stop it; it reads NSPs, XCIs and NUPs (a checkout without NUP support stops in nxplay), not dumps
             Menu("Install on Android", systemImage: "candybarphone") {
                 if library.androidDevices.isEmpty {
                     Text(

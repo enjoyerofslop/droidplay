@@ -11,7 +11,7 @@
 #   --device <udid>  install on a device through Xcode instead: prepare the game's Xcode project, build it signed
 #                  with your team (Xcode > Settings > Apple Accounts), install and start it; pass --team-id <id>
 #                  (and --bundle-id) after the game folder
-#   --android <serial>  build for Android with droidnative (NXNATIVE_ANDROID) in <game folder>/android, install the
+#   --android <serial>  build for Android with DroidPlay Core (NXNATIVE_ANDROID) in <game folder>/android, install the
 #                  app and copy the game to that adb device, and start it there (needs the game's NSP, NSZ, XCI or
 #                  XCZ files)
 #   --apk          build for Android the same way, without a device, and export the app with the game's files for
@@ -19,7 +19,7 @@
 #                  adb install.sh
 #   --game-apk     build the game as an Android app of its own, to install anywhere without the DroidPlay app:
 #                  <game folder>/android/<game name>.apk, with its game data inside, or beside it as <game name>.romfs when
-#                  the game is over 2 GB (the app asks for that file once); needs a droidnative with --game-apk
+#                  the game is over 2 GB (the app asks for that file once); needs a DroidPlay Core checkout with --game-apk
 #   --game-xapk    the same app as one <game name>.xapk, the game data inside as its OBB file, for an XAPK installer
 #   --fps         Apple's Metal performance HUD over the game (DM_METAL_HUD=1): frame rate, frame and GPU time, memory
 #   --fullscreen   start the game's window in full screen (DM_FULLSCREEN=1); ⌃⌘F or the green button leave it
@@ -30,8 +30,8 @@
 #                  for a game already built, without updating nxnative, and exit; a build and a play write it too.
 #                  Each setting is an environment variable (DM_FPS_TARGET=30, ...) the game reads when it starts
 # env:   NXNATIVE (repository; default ./nxnative in this checkout, as bin/setup clones it, else ../nxnative beside it),
-#        NXNATIVE_ANDROID (the droidnative repository --android builds with; default ./droidnative in this
-#        checkout, else ../droidnative beside it), ANDROID_HOME (the Android SDK; default ~/Library/Android/sdk),
+#        NXNATIVE_ANDROID (the DroidPlay Core repository --android builds with; default ./droidplay-core in this
+#        checkout, else ../droidplay-core beside it, or a droidnative folder cloned before the rename), ANDROID_HOME (the Android SDK; default ~/Library/Android/sdk),
 #        NXPLAY_VENV (Python environment; default .venv in this checkout, made by bin/setup), NX_KEYS (default ~/.switch/prod.keys),
 #        DM_SAVE_SYNC (nxnative's cloud saves: a folder, icloud, or 0; passed on to the game as it is),
 #        NXPLAY_SETTINGS (names of DM_ variables in the environment the game is given, said in the output when it starts),
@@ -106,18 +106,24 @@ if [[ $# -lt 1 ]]; then
 fi
 game="$(cd "$1" && pwd)"; shift
 
-# --android, --apk and the game apps build with droidnative, the fork that carries the Android port (seedds/nxnative
+# --android, --apk and the game apps build with DroidPlay Core, the fork that carries the Android port (seedds/nxnative
 # stays Apple-only): a checkout of its own, followed the way nxnative's is
 repo_name=nxnative
 if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
-  repo_name=droidnative
+  repo_name="DroidPlay Core"
+  # a checkout cloned before a rename keeps its folder: droidnative (until 2026-11-09), nxnative-android before that
+  repo=""
   if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then repo="$NXNATIVE_ANDROID"
-  elif [[ -d "$here/droidnative" ]]; then repo="$here/droidnative"
-  elif [[ -d "$here/nxnative-android" ]]; then repo="$here/nxnative-android"   # a checkout set up before the rename
-  elif [[ -d "$here/../nxnative-android" && ! -d "$here/../droidnative" ]]; then repo="$here/../nxnative-android"
-  else repo="$here/../droidnative"; fi
+  else
+    for d in "$here" "$here/.."; do
+      for n in droidplay-core droidnative nxnative-android; do
+        if [[ -z "$repo" && -d "$d/$n" ]]; then repo="$d/$n"; fi
+      done
+    done
+    [[ -n "$repo" ]] || repo="$here/../droidplay-core"
+  fi
   if [[ ! -f "$repo/scripts/build_android_from_nsp.py" ]]; then
-    warn "nxplay: no droidnative checkout at $repo: clone one (git clone https://github.com/enjoyerofslop/droidnative '$repo') or set its folder (NXNATIVE_ANDROID, DroidPlay's Settings › Devices)"
+    warn "nxplay: no DroidPlay Core checkout at $repo: clone one (git clone https://github.com/enjoyerofslop/droidplay-core '$repo') or set its folder (NXNATIVE_ANDROID, DroidPlay's Settings › Devices)"
     exit 1
   fi
 fi
@@ -505,7 +511,7 @@ android_tools() {
 }
 
 # The Android build's own folder, <game folder>/android, with the game files in it: build_android_from_nsp.py keeps its
-# work in <title ID>_build beside the files it reads, as the Mac build does, and droidnative's code (forked from an
+# work in <title ID>_build beside the files it reads, as the Mac build does, and DroidPlay Core's code (forked from an
 # older nxnative) must neither reuse nor rewrite the Mac build's extraction and patched modules. Each file is a relative
 # symbolic link to the game folder's: no space taken, and removing a game file (Free Up Space) frees its space at once.
 # A link whose file is gone is removed, as the script would stop on it; a copy put there by hand (an APFS clone of the
@@ -555,7 +561,7 @@ android_export() {
   ver="${patched##*/patched_android_}"
   ex="$work/extract/$ver"
   # the name, the language (--lang, else English when the game has it, else its first) and game.json, read from the
-  # control data as the script reads it (droidnative's dm/tools/nacp.py); game.json written as the script writes it
+  # control data as the script reads it (DroidPlay Core's dm/tools/nacp.py); game.json written as the script writes it
   name="$(cd "$repo" && python3 - "$ex" "$tid" "$ver" "$lang" "$work" << 'EOF'
 import json, os, sys
 sys.path.insert(0, 'dm/tools')
@@ -596,7 +602,7 @@ EOF
   mv -f "$work/android_export_defaults.txt" "$dst/defaults.txt"
   mv -f "$work/android_export_game.json" "$dst/game.json"
   cat > "$out/How to install.txt" << EOF
-$name for Android, built by DroidPlay with droidnative on $(date +%Y-%m-%d).
+$name for Android, built by DroidPlay with DroidPlay Core on $(date +%Y-%m-%d).
 It runs on arm64 Android devices with Vulkan (an Ayn Odin 2, a recent phone).
 
 With a Mac or Linux computer that has adb (Android's platform-tools), and the device connected with USB debugging on:
@@ -651,7 +657,7 @@ EOF
   say "nxplay: copy that folder anywhere; How to install.txt says how to put the game on a device (install.sh does it with adb)"
 }
 
-# --android <serial>: droidnative builds the game's host and the one app that carries every game built on this
+# --android <serial>: DroidPlay Core builds the game's host and the one app that carries every game built on this
 # Mac, installs it as an update (the saves on the device stay) and copies the game to the device; then the game starts
 # there. --apk builds the same without a device (--no-push) and exports it (android_export). The script reuses each
 # step whose inputs haven't changed, so a build after either checkout moved rebuilds what changed and no more. Even
@@ -664,16 +670,16 @@ if [[ -n "$android" || $apk -eq 1 || -n "$game_app" ]]; then
     exit 1
   fi
   # A NUP (a Switch 2 game) is read only by a checkout that has upstream nxnative's NUP support (build_android_from_nsp.py's
-  # scan, in droidnative's main); an older one would stop on the folder with no NSPs in it
+  # scan, in DroidPlay Core's main); an older one would stop on the folder with no NSPs in it
   if compgen -G "$adir/*.[nN][uU][pP]" > /dev/null && ! grep -q "nup_file" "$repo/scripts/build_android_from_nsp.py"; then
-    warn "nxplay: the droidnative checkout at $repo can't read a NUP (its build_android_from_nsp.py has no NUP support): pull droidnative's main, which has it"
+    warn "nxplay: the DroidPlay Core checkout at $repo can't read a NUP (its build_android_from_nsp.py has no NUP support): pull DroidPlay Core's main, which has it"
     exit 1
   fi
-  # A game app (--game-apk, --game-xapk): droidnative's own --game-apk makes the app, the game data inside it, beside
+  # A game app (--game-apk, --game-xapk): DroidPlay Core's own --game-apk makes the app, the game data inside it, beside
   # it, or in the XAPK, in the Android folder, and leaves the DroidPlay app as it is. A checkout from before it says so.
   if [[ -n "$game_app" ]]; then
     if ! grep -q -- "--game-apk" "$repo/scripts/build_android_from_nsp.py"; then
-      warn "nxplay: the droidnative checkout at $repo can't make a game app (its build_android_from_nsp.py has no --game-apk): pull droidnative's main, which has it"
+      warn "nxplay: the DroidPlay Core checkout at $repo can't make a game app (its build_android_from_nsp.py has no --game-apk): pull DroidPlay Core's main, which has it"
       exit 1
     fi
     xapk=()

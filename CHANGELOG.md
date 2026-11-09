@@ -6,7 +6,8 @@ User-visible changes to DroidPlay, `nxplay` and the setup. The format follows [K
 
 ### Changed
 
-- **The Android app is called DroidPlay on the device**, with DroidPlay's icon, in place of nxnative and its mark: the launcher, its header and themed icons, from droidnative's next build (droidnative #25). Its package is still `org.nxnative.android`, so installing it is an update: the games and saves on the device stay. **Build APK** exports it as `DroidPlay.apk`, and its How to install.txt and install.sh say DroidPlay; an older export with `nxnative.apk` still counts as one.
+- **droidnative is now DroidPlay Core**, at [enjoyerofslop/droidplay-core](https://github.com/enjoyerofslop/droidplay-core): it was renamed so it isn't mistaken for [DroidNative](https://github.com/DroidNative/DroidNativeApp), which runs Linux desktop apps on Android. Setup, Settings and the messages say DroidPlay Core, and Setup clones it into `~/Library/Application Support/DroidPlay/droidplay-core`. A checkout cloned before, in a `droidnative` folder, is still found and keeps working: GitHub sends the old address on to the new one.
+- **The Android app is called DroidPlay on the device**, with DroidPlay's icon, in place of nxnative and its mark: the launcher, its header and themed icons, from DroidPlay Core's next build (droidplay-core#25). Its package is still `org.nxnative.android`, so installing it is an update: the games and saves on the device stay. **Build APK** exports it as `DroidPlay.apk`, and its How to install.txt and install.sh say DroidPlay; an older export with `nxnative.apk` still counts as one.
 
 ## 0.2.1 — 2026-11-08
 

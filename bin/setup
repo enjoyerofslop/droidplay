@@ -2,7 +2,7 @@
 # Set up DroidPlay on this Mac; safe to run again. Checks the Mac and Xcode (downloading its Metal
 # Toolchain, which the shader builds need, when missing), installs the tools
 # (Homebrew, Brewfile; mise.toml too when mise is there), the Python packages (uv, into .venv), clones
-# nxnative into ./nxnative and droidnative (its Android port) into ./droidnative, installs what Android builds need (a JDK and
+# nxnative into ./nxnative and DroidPlay Core (its Android port) into ./droidplay-core, installs what Android builds need (a JDK and
 # sdkmanager from Homebrew, Brewfile.android; the SDK's NDK, CMake, build-tools and platform-tools into ANDROID_HOME, else
 # ~/Library/Android/sdk), then builds DroidPlay and installs it into /Applications.
 #
@@ -17,7 +17,7 @@
 #   NXNATIVE        the nxnative checkout (default: ./nxnative, else ../nxnative)
 #   SUDO_ASKPASS    a password prompt: the .NET SDK's installer and Xcode's first launch then run without a terminal
 #   NXPLAY_ANDROID_LICENSES=accept  the player accepted the Android SDK License in DroidPlay: sdkmanager installs without asking
-#   NXNATIVE_ANDROID  the droidnative checkout; ANDROID_HOME  the Android SDK (default ~/Library/Android/sdk)
+#   NXNATIVE_ANDROID  the DroidPlay Core checkout; ANDROID_HOME  the Android SDK (default ~/Library/Android/sdk)
 set -euo pipefail
 # the checkout keeps the Brewfile above bin/; the app's bundled copy (Resources/Setup) keeps it beside the script
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -135,22 +135,27 @@ if [[ -f "$repo/scripts/build_ipa_from_nsp.py" ]]; then
   fi
 fi
 
-# droidnative, for Install on Android and Build Game App: nxnative with its Android port, a checkout beside nxnative. A missing one is a ✗ like
+# DroidPlay Core, for Install on Android and Build Game App: nxnative with its Android port, a checkout beside nxnative. A missing one is a ✗ like
 # nxnative, so Install Missing clones it; a checkout set up before the rename keeps its nxnative-android folder
-section "droidnative"
+section "DroidPlay Core"
+# a checkout cloned before a rename keeps its folder: droidnative (until 2026-11-09), nxnative-android before that
+arepo=""
 if [[ -n "${NXNATIVE_ANDROID:-}" ]]; then arepo="$NXNATIVE_ANDROID"
-elif (( app_run )); then arepo="$NXPLAY_HOME/droidnative"   # never beside this script: run from the app, that is inside the app bundle
-elif [[ -d droidnative ]]; then arepo="droidnative"
-elif [[ -d nxnative-android ]]; then arepo="nxnative-android"
-elif [[ -d ../droidnative ]]; then arepo="../droidnative"
-else arepo="droidnative"; fi
+elif (( app_run )); then   # never beside this script: run from the app, that is inside the app bundle
+  if [[ -d "$NXPLAY_HOME/droidnative" && ! -d "$NXPLAY_HOME/droidplay-core" ]]; then arepo="$NXPLAY_HOME/droidnative"; else arepo="$NXPLAY_HOME/droidplay-core"; fi
+else
+  for d in droidplay-core droidnative nxnative-android ../droidplay-core ../droidnative; do
+    if [[ -z "$arepo" && -d "$d" ]]; then arepo="$d"; fi
+  done
+  [[ -n "$arepo" ]] || arepo="droidplay-core"
+fi
 if [[ ! -f "$arepo/scripts/build_android_from_nsp.py" ]]; then
-  if (( check )); then fail "not cloned at $arepo (Install on Android needs it): git clone https://github.com/enjoyerofslop/droidnative.git '$arepo'"
-  else step "cloned into $arepo" "git clone failed" git clone --quiet https://github.com/enjoyerofslop/droidnative.git "$arepo"; fi
+  if (( check )); then fail "not cloned at $arepo (Install on Android needs it): git clone https://github.com/enjoyerofslop/droidplay-core.git '$arepo'"
+  else step "cloned into $arepo" "git clone failed" git clone --quiet https://github.com/enjoyerofslop/droidplay-core.git "$arepo"; fi
 fi
 if [[ -f "$arepo/scripts/build_android_from_nsp.py" ]]; then ok "$(cd "$arepo" && pwd) ($(git -C "$arepo" log -1 --format='%h, %cr'))"; fi
 
-# What droidnative's packer needs (build_android_from_nsp.py --check): a JDK 17 or newer (javac and keytool build and sign the app; the SDK's
+# What DroidPlay Core's packer needs (build_android_from_nsp.py --check): a JDK 17 or newer (javac and keytool build and sign the app; the SDK's
 # own tools need 17 to run), the SDK's command-line tools for sdkmanager, and the SDK packages below. The JDK and the command-line tools come
 # from Homebrew (Brewfile.android, which Uninstall reads too); the packages go into ANDROID_HOME, else ~/Library/Android/sdk, Android
 # Studio's place, where nxplay and DroidPlay look for adb. sdkmanager installs a package only once its license is accepted, and that is the

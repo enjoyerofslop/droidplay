@@ -5,7 +5,7 @@
 - A library of your games with their icons: extract them, play them on the Mac, rebuild them.
 - Console Mode for the couch: full screen, driven by a game controller.
 - Install a game on your iPhone or iPad through Xcode, or build an IPA to sideload.
-- Install a game on an Android handheld or phone (an Ayn Odin 2, say) through adb, built with [droidnative](https://github.com/enjoyerofslop/droidnative), a fork of nxnative with an Android port.
+- Install a game on an Android handheld or phone (an Ayn Odin 2, say) through adb, built with [DroidPlay Core](https://github.com/enjoyerofslop/droidplay-core), a fork of nxnative with an Android port.
 - Copy saves between the Mac and a device, after seeing which one is newer, and back them up to your own private Git repository while you play.
 - Pull nxnative's latest fixes before a play and rebuild when they change something, after asking whether to update now or play the current build. Or keep a build that works as it is.
 
@@ -14,7 +14,7 @@ and follows NX Play's changes, merged in from time to time. It installs beside N
 
 > You need your own games (NSP, NSZ, XCI or XCZ files, or a NUP file or dump of a Switch 2 game) and the `prod.keys` of your own Switch. Nothing here downloads games or keys.
 
-Questions, help with building and playing, and how a game runs on your device go to the [DroidPlay & droidnative Discord](https://discord.gg/4wNHX3uqSU): #help for a problem, #compatibility for a game. Don't share games, keys, firmware or packed APKs there.
+Questions, help with building and playing, and how a game runs on your device go to the [DroidPlay Discord](https://discord.gg/4wNHX3uqSU): #help for a problem, #compatibility for a game. Don't share games, keys, firmware or packed APKs there.
 
 **Contents**
 
@@ -55,7 +55,7 @@ DroidPlay takes the other route: one app for all your games, everything portable
    - downloads Xcode's Metal Toolchain, which every build needs to compile the game's shaders;
    - installs the tools with Homebrew (uv, xcodegen, zstd, glslang, the .NET SDK), asking for your password for the .NET SDK;
    - installs Python and nxnative's packages with [uv](https://docs.astral.sh/uv/), leaving any other Python alone;
-   - clones nxnative, and droidnative for Android;
+   - clones nxnative, and DroidPlay Core for Android;
    - installs what Android builds need: a JDK and the Android SDK's command-line tools with Homebrew (`Brewfile.android`), each only when the Mac has none (a JDK 17 or newer, Android Studio's included), then the SDK's NDK, CMake, build-tools, an Android platform and platform-tools into `~/Library/Android/sdk`, where Android Studio keeps it: about 3 GB. Installing them means accepting Google's [Android SDK License](https://developer.android.com/studio/terms), so Setup asks you first, unless it was accepted in that SDK already.
 
 Everything except Homebrew's tools and the Android SDK goes into one folder, `~/Library/Application Support/DroidPlay` (Setup's **Open Folder**).
@@ -110,7 +110,7 @@ Right-click a game for more, or use the **Game** menu:
 - **Keep This Build**: for a game that plays well. nxnative updates no longer rebuild it, and a lock badge marks it. While it's kept, Install on Device, Build IPA and Make Mac App are off, since they'd rewrite files the kept build runs. Rebuild still replaces it.
 - **Game Settings…** (⌥⌘,): the settings nxnative offers for the game, with the defaults it was tested with. Depending on the game these include frame rate, render scale, docked or handheld, upscaling, language, window or full screen, rumble and performance switches. The basic ones come first; the rest are under Advanced settings. Each one follows Settings › Games until you change it for the game. A changed value is tinted and has its own reset button, and **Use Global Settings** resets them all. They apply the next time the game starts, and the log lists them. The game's Mac app shares the game's own values: DroidPlay keeps them where nxnative's own settings window does.
 - **Install on Device**: builds the game with Xcode, signed with your team, then installs and starts it on a connected iPhone or iPad. The device must be paired with Xcode and in Developer Mode.
-- **Install on Android**: builds the game with droidnative in the game folder's `android` folder, then installs it and starts it on an Android device connected with USB debugging on. See [Android](#android).
+- **Install on Android**: builds the game with DroidPlay Core in the game folder's `android` folder, then installs it and starts it on an Android device connected with USB debugging on. See [Android](#android).
 - **Play on Android**: starts the game on a device that already has it, without building or copying anything.
 - **Build APK**: the same Android build without a device, exported with the game's files to install on any Android device. See [Android](#android).
 - **Build Game App** › **APK** or **XAPK**: the game as an Android app of its own, without the DroidPlay app, to install on any device. See [Android](#android).
@@ -153,11 +153,11 @@ curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/game
 
 ### Android
 
-**Install on Android** builds a game with [droidnative](https://github.com/enjoyerofslop/droidnative), a fork of nxnative that adds an Android port with a Vulkan renderer (seedds/nxnative itself stays Apple-only). It installs the game on an arm64 device over adb, then starts it there. It's experimental, as the fork is: a game's notes in nxnative don't cover Android, and some games run slower than on a Mac. The fork's own script does the work (`scripts/build_android_from_nsp.py`):
+**Install on Android** builds a game with [DroidPlay Core](https://github.com/enjoyerofslop/droidplay-core), a fork of nxnative that adds an Android port with a Vulkan renderer (seedds/nxnative itself stays Apple-only). It installs the game on an arm64 device over adb, then starts it there. It's experimental, as the fork is: a game's notes in nxnative don't cover Android, and some games run slower than on a Mac. The fork's own script does the work (`scripts/build_android_from_nsp.py`):
 
-- **What runs, and on what:** droidnative's [Android baselines](https://github.com/enjoyerofslop/droidnative/blob/main/dm/android/baselines.md) give frame rates for Super Mario Odyssey, Pokémon Brilliant Diamond, Animal Crossing: New Horizons, Super Smash Bros. Ultimate, The Legend of Zelda: Link's Awakening and Skyward Sword HD on an Ayn Odin 2, a OnePlus Pad 3 and a Retroid Pocket 5, and the open problems: Brilliant Diamond crashes on the Retroid Pocket 5, Smash's battles stutter while the GPU's pipelines are built, Link's Awakening draws wrongly (and crashes at boot on the Retroid Pocket 5), and Skyward Sword HD's Skyloft has grey terrain at 30 fps. Odyssey's crash when play starts and Smash's at boot are fixed (pack those games again to get the fixes). The [Status](https://github.com/enjoyerofslop/droidnative#status) table there is kept current.
+- **What runs, and on what:** DroidPlay Core's [Android baselines](https://github.com/enjoyerofslop/droidplay-core/blob/main/dm/android/baselines.md) give frame rates for Super Mario Odyssey, Pokémon Brilliant Diamond, Animal Crossing: New Horizons, Super Smash Bros. Ultimate, The Legend of Zelda: Link's Awakening and Skyward Sword HD on an Ayn Odin 2, a OnePlus Pad 3 and a Retroid Pocket 5, and the open problems: Brilliant Diamond crashes on the Retroid Pocket 5, Smash's battles stutter while the GPU's pipelines are built, Link's Awakening draws wrongly (and crashes at boot on the Retroid Pocket 5), and Skyward Sword HD's Skyloft has grey terrain at 30 fps. Odyssey's crash when play starts and Smash's at boot are fixed (pack those games again to get the fixes). The [Status](https://github.com/enjoyerofslop/droidplay-core#status) table there is kept current.
 - **One app holds every game.** On the device it's **DroidPlay**, with DroidPlay's icon (its package is still `org.nxnative.android`, from nxnative). Its launcher lists each game on the device, in `Android/data/org.nxnative.android/files/games/<title ID>`. Every APK carries the host of each game built on this Mac (kept in `~/.local/share/nxnative/android`), so installing a second game keeps the first. An install is an update, so the saves on the device stay. Don't uninstall the app: that would delete them.
-- **The build has a folder of its own:** `<game folder>/android`, with links to the game files (no space taken), plus droidnative's `<title ID>_build`. droidnative follows nxnative but is a checkout of its own, at its own commit, so it never reuses or rewrites the Mac build. A kept build doesn't stop an Android install. NSP, NSZ, XCI and XCZ files work there, and so does a Switch 2 game's `.nup` (droidnative's `main` reads one; DroidPlay says so when an older checkout can't). Dumps don't.
+- **The build has a folder of its own:** `<game folder>/android`, with links to the game files (no space taken), plus DroidPlay Core's `<title ID>_build`. DroidPlay Core follows nxnative but is a checkout of its own, at its own commit, so it never reuses or rewrites the Mac build. A kept build doesn't stop an Android install. NSP, NSZ, XCI and XCZ files work there, and so does a Switch 2 game's `.nup` (DroidPlay Core's `main` reads one; DroidPlay says so when an older checkout can't). Dumps don't.
 - **Each install runs the whole build again.** Steps whose inputs haven't changed are reused, so after an update of either checkout only what changed is rebuilt. The first build of a game takes as long as a Mac build. Later ones take a few minutes, mostly copying to the device.
 - **Play on Android** starts a game the device already has: DroidPlay asks the device which games its app holds. Settings › Devices › Android shows the devices adb sees.
 - **Build APK** is for a device this Mac can't reach, or a friend's. The APK alone isn't enough: the app reads each game from its own folder on the device, and has no import of its own. So DroidPlay exports both, to `<game folder>/android/<game name> (Android)`, and shows the folder in Finder:
@@ -167,7 +167,7 @@ curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/game
   - `install.sh`, which installs the app and copies the game over adb from any Mac or Linux computer.
 
   Without adb: install the APK, open the app once, then copy `games/<title ID>` into `Android/data/org.nxnative.android/files/games/` over USB file transfer. A device that has nxnative built on another computer refuses the APK, as it's signed with this Mac's key (`~/.android/nxnative-debug.jks`). Uninstalling that copy first deletes its games and saves.
-- **Build Game App** makes the game an app of its own: its own name and icon on the device, and its own saves. It opens straight into the game, with no DroidPlay app and no game drawer, so several games install side by side. It needs a droidnative checkout with the game-app mode (`build_android_from_nsp.py --game-apk`, in droidnative's `main`); DroidPlay says so otherwise. Two kinds, which can sit side by side in the game's `android` folder:
+- **Build Game App** makes the game an app of its own: its own name and icon on the device, and its own saves. It opens straight into the game, with no DroidPlay app and no game drawer, so several games install side by side. It needs a DroidPlay Core checkout with the game-app mode (`build_android_from_nsp.py --game-apk`, in DroidPlay Core's `main`); DroidPlay says so otherwise. Two kinds, which can sit side by side in the game's `android` folder:
   - **APK**: `<game name>.apk`. A game whose data fits under 2 GB is one file. A bigger game also gets `<game name>.romfs`, its data (an APFS clone, so it takes no space): copy both to the device, put the `.romfs` anywhere, even on an SD card, and the app asks you to pick it once when it first opens. It reads the file where it is.
   - **XAPK**: `<game name>.xapk`, one file with the game data as the app's OBB data file, for an XAPK installer app on the device. It's a real copy of the game data, so it takes that much space on the Mac.
 
@@ -176,7 +176,7 @@ curl -X POST -H "Authorization: Bearer <code>" "http://<mac>.local:47474/v1/game
 To set it up:
 
 1. Setup installs a JDK and the Android SDK with what the build needs (the NDK, CMake 3.22, build-tools 36, android-35 and platform-tools) in `~/Library/Android/sdk`, so an SDK Android Studio installed there is used and topped up. nxplay in Terminal follows `ANDROID_HOME` when it's set. For a JDK it takes `JAVA_HOME`, else one `java_home` lists (17 or newer), else Homebrew's openjdk, else Android Studio's.
-2. Setup clones droidnative into `~/Library/Application Support/DroidPlay/droidnative` (`bin/setup`: `./droidnative` in the checkout), or clone it yourself: `git clone https://github.com/enjoyerofslop/droidnative`. To build with your own branch, clone your fork anywhere and point Settings › Devices › Android at it. Before each install, nxplay pulls the checkout's upstream; on a branch without one, it stays on that code.
+2. Setup clones DroidPlay Core into `~/Library/Application Support/DroidPlay/droidplay-core` (`bin/setup`: `./droidplay-core` in the checkout; a checkout cloned before it was renamed from droidnative keeps its `droidnative` folder), or clone it yourself: `git clone https://github.com/enjoyerofslop/droidplay-core`. To build with your own branch, clone your fork anywhere and point Settings › Devices › Android at it. Before each install, nxplay pulls the checkout's upstream; on a branch without one, it stays on that code.
 3. On the device, turn on Developer options › USB debugging, connect it, and allow this Mac.
 
 The build log is in `<game folder>/android/<title ID>_build/logs`, and the game's log on the device is `Android/data/org.nxnative.android/files/log.txt` (`adb logcat -s nxnative`).
@@ -244,7 +244,7 @@ Down (or a click on the game's name) opens the game's details: the banner and th
 ./nxplay --ipa ~/Games/MetroidDread        # build the iOS IPA into the game folder, to sideload
 ./nxplay --mac-app ~/Games/MetroidDread    # pack a standalone Mac app of the game into its folder
 ./nxplay --device <udid> ~/Games/MetroidDread --team-id <team>   # build with Xcode, install and start on a device
-./nxplay --android <serial> ~/Games/MetroidDread   # build with droidnative, install and start on an Android device
+./nxplay --android <serial> ~/Games/MetroidDread   # build with DroidPlay Core, install and start on an Android device
 ./nxplay --apk ~/Games/MetroidDread       # build for Android and export the app with the game's files, to install anywhere
 ./nxplay --game-apk ~/Games/MetroidDread  # the game as an Android app of its own (and its .romfs when it's over 2 GB)
 ./nxplay --game-xapk ~/Games/MetroidDread # the same app as one .xapk, for an XAPK installer
@@ -263,7 +263,7 @@ Each run starts by updating nxnative and lists any new commits. A game is rebuil
 
 The run command is saved in `<game folder>/<title ID>_build/start_mac.sh`. It holds absolute paths, so after you move a game folder (or nxnative), the next run rewrites them to the new location.
 
-Environment variables: `NXNATIVE` (the nxnative checkout; default `./nxnative`, else `../nxnative`), `NXNATIVE_ANDROID` (the droidnative checkout `--android` builds with; default `./droidnative`, else `../droidnative`), `ANDROID_HOME` (the Android SDK; default `~/Library/Android/sdk`), `NX_KEYS` (default `~/.switch/prod.keys`), `NXPLAY_VENV` (default `./.venv`).
+Environment variables: `NXNATIVE` (the nxnative checkout; default `./nxnative`, else `../nxnative`), `NXNATIVE_ANDROID` (the DroidPlay Core checkout `--android` builds with; default `./droidplay-core`, else `../droidplay-core`), `ANDROID_HOME` (the Android SDK; default `~/Library/Android/sdk`), `NX_KEYS` (default `~/.switch/prod.keys`), `NXPLAY_VENV` (default `./.venv`).
 
 ## Controls
 
