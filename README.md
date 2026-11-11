@@ -14,7 +14,7 @@ and follows NX Play's changes, merged in from time to time. It installs beside N
 
 > You need your own games (NSP, NSZ, XCI or XCZ files, or a NUP file or dump of a Switch 2 game) and the `prod.keys` of your own Switch. Nothing here downloads games or keys.
 
-Questions, help with building and playing, and how a game runs on your device go to the [DroidPlay Discord](https://discord.gg/4wNHX3uqSU): #help for a problem, #compatibility for a game. Don't share games, keys, firmware or packed APKs there.
+Questions, help with building and playing, and how a game runs on your device go to the [DroidPlay Discord](https://discord.gg/3r92f8wmh7): #help for a problem, #compatibility for a game. Don't share games, keys, firmware or packed APKs there.
 
 **Contents**
 
