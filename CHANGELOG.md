@@ -7,6 +7,7 @@ User-visible changes to DroidPlay, `nxplay` and the setup. The format follows [K
 ### Changed
 
 - **The README asks for `adb logcat -s DroidPlay`** for the Android app's log, as DroidPlay Core's app tags it from 0.5.0 on; `-s nxnative` still works for older ones.
+- **The README's DroidPlay Discord link is the server's permanent invite**, [discord.gg/3r92f8wmh7](https://discord.gg/3r92f8wmh7). The invite it linked before expires in December 2026.
 
 ## 0.2.2 — 2026-11-09
 
