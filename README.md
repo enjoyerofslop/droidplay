@@ -47,6 +47,8 @@ DroidPlay takes the other route: one app for all your games, everything portable
 - [Homebrew](https://brew.sh): Setup installs the other tools with it.
 - For Install on Device: an Apple developer account, signed in under Xcode › Settings › Apple Accounts.
 
+No Mac? [DroidPlay for Windows and DroidPlay for Linux](https://github.com/enjoyerofslop/droidplay-core#get-started), DroidPlay Core's own app, build and install games on an Android device from a PC: a Setup for Windows, and an AppImage for x86_64 Linux, from [DroidPlay Core's releases](https://github.com/enjoyerofslop/droidplay-core/releases/latest). They make Android games only: games on a Mac, an iPhone or an iPad need this app.
+
 ## Install
 
 1. Download the DMG from the [releases](https://github.com/enjoyerofslop/droidplay/releases) and drag DroidPlay into Applications. The releases are ad-hoc signed, not with a Developer ID, and not notarized: the first time, macOS won't open it, so open System Settings › Privacy & Security and click **Open Anyway** beside DroidPlay. DroidPlay doesn't update itself, but it tells you when a new release is out: download it from the same page. Or build it [from the source](#from-the-source).

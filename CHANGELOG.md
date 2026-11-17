@@ -8,6 +8,7 @@ User-visible changes to DroidPlay, `nxplay` and the setup. The format follows [K
 
 - **The README asks for `adb logcat -s DroidPlay`** for the Android app's log, as DroidPlay Core's app tags it from 0.5.0 on; `-s nxnative` still works for older ones.
 - **The README's DroidPlay Discord link is the server's permanent invite**, [discord.gg/3r92f8wmh7](https://discord.gg/3r92f8wmh7). The invite it linked before expires in December 2026.
+- **The README points Windows and Linux users to DroidPlay Core's own app**, DroidPlay for Windows (Setup) and DroidPlay for Linux (an x86_64 AppImage), which build and install Android games from a PC.
 
 ## 0.2.2 — 2026-11-09
 
